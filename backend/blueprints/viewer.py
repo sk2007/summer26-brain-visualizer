@@ -1,12 +1,12 @@
 from flask import current_app, request, jsonify
-# Remove immediate import to prevent pycortex startup issues
-# from patches import template_patch
 from db_loading.nifti_loading import load_nifti
 from flask import Blueprint, send_from_directory
 import cortex
 import os
 import shutil
 from app import redis_cache
+
+_template_patch_applied = False
 
 viewer = Blueprint('viewer', __name__, url_prefix='/api')
 
@@ -110,6 +110,12 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
         os.makedirs(session_out_path, exist_ok=True)
         
         current_nii_volume = cortex.Volume(current_nii_volume_data, subject='S1', xfmname='fullhead')
+
+        # Apply template patch lazily so pycortex can find custom_viewer.html
+        global _template_patch_applied
+        if not _template_patch_applied:
+            from patches import template_patch  # noqa: F401 — side-effect import applies the patch
+            _template_patch_applied = True
 
         # Create the static viewer files in shared directory
         cortex.webgl.make_static(outpath=shared_out_path, data={ 'test': current_nii_volume }, recache=True, template='custom_viewer.html')

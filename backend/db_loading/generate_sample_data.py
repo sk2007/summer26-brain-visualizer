@@ -4,11 +4,10 @@ from scipy.stats import truncnorm
 from dotenv import load_dotenv
 from datetime import date, timedelta
 
-from models import Patients, NiftiData, TumorMask, DoseMask, MRIMask
-
 load_dotenv()
 
 from app import app, db
+from models import Patients, NiftiData, TumorMask, DoseMask, MRIMask
 
 origin_cancer_choices = [
     "Lung",

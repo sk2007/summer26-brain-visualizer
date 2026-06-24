@@ -22,6 +22,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/brain_dev
       - FILESTORE_PATH=/app/filestore
+      - CUSTOM_TEMPLATES_PATH=/app/custom_templates
     ports:
       - "5001:5001"
     volumes:
@@ -30,7 +31,7 @@ services:
       - app-network
 
   db:
-    image: postgres
+    image: postgres:16
     healthcheck:
       disable: true
     restart: always

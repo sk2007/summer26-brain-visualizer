@@ -3,7 +3,6 @@ import uuid
 import numpy as np
 import nibabel as nib
 from scipy.ndimage import gaussian_filter
-from models import Patients, NiftiData, TumorMask, MRIMask, DoseMask
 from datetime import date, timedelta
 import random
 import gc  # For garbage collection
@@ -12,6 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app import app, db
+from models import Patients, NiftiData, TumorMask, MRIMask, DoseMask
 
 OUT_DIR = "../filestore/test_db_nifti"
 SHAPE   = (31, 100, 100)  # (z, y, x) - 31 slices in z-direction
