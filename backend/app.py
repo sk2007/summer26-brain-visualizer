@@ -6,9 +6,12 @@ import uuid
 import threading
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from dotenv import load_dotenv
+from sqlalchemy import text
 from redis_cache import RedisCache
 import logging
 
+load_dotenv()
 redis_cache = RedisCache()
 
 app = Flask(__name__)
@@ -80,7 +83,7 @@ def health_check():
     """Health check endpoint for monitoring."""
     try:
         # Test database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         db_status = 'healthy'
     except Exception as e:
         db_status = f'unhealthy: {str(e)}'

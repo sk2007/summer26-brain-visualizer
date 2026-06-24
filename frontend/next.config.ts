@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://backend:5001';
+
 const nextConfig: NextConfig = {
   eslint: {
     // Don't fail builds on ESLint errors
@@ -13,7 +15,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://backend:5001/api/:path*',
+        destination: `${apiUrl}/api/:path*`,
       },
     ];
   },
