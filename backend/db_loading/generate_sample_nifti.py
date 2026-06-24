@@ -13,7 +13,7 @@ load_dotenv()
 from app import app, db
 from models import Patients, NiftiData, TumorMask, MRIMask, DoseMask
 
-OUT_DIR = "../filestore/test_db_nifti"
+OUT_DIR = os.path.join(os.environ.get('FILESTORE_PATH', './filestore'), 'test_db_nifti')
 SHAPE   = (31, 100, 100)  # (z, y, x) - 31 slices in z-direction
 CURRENT_DATE = date(2025, 6, 3)
 BATCH_SIZE = 100  # Process patients in batches to manage memory

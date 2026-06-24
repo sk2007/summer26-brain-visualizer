@@ -64,7 +64,11 @@ def get_volume_data():
             f"{current_filter_id}.nii.gz"
         )
         if not os.path.exists(nifti_file_path):
-            return jsonify({"error": f"Mask file not found at: {nifti_file_path}"}), 404
+            current_app.logger.info(f"NIfTI not found at {nifti_file_path}, generating for default filter...")
+            from db_loading.generate_display_nifti import generate_display_nifti
+            result = generate_display_nifti(current_filter_id, {}, mask_type)
+            if not result:
+                return jsonify({"error": f"Mask file not found at: {nifti_file_path}"}), 404
         
         nii_img = nib.load(nifti_file_path)
         nii_data = nii_img.get_fdata(dtype=np.float32)
