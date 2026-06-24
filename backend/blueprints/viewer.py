@@ -60,10 +60,12 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
         redis_key = f'viewer_cache:{current_filter_id}_{mask_type}'
         if redis_cache.path_exists(redis_key):
             out_path = redis_cache.get_path(redis_key)
-            # Ensure out_path is a string, not bytes
             if isinstance(out_path, bytes):
                 out_path = out_path.decode('utf-8')
-            return send_from_directory(out_path, 'index.html') # already cached, so we return
+            if os.path.exists(os.path.join(out_path, 'index.html')):
+                return send_from_directory(out_path, 'index.html')
+            # Stale cache entry (e.g. container restarted) — fall through to regenerate
+            redis_cache.delete_path(redis_key)
 
         # Map mask types to cache directories
         cache_subdirs = {
@@ -89,12 +91,15 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
             f"{current_filter_id}.nii.gz"
         )
         
-        # Check if file exists before trying to load it
-        current_app.logger.info(f"Checking for NIfTI file at: {nifti_file_path}")
+        # Generate the default NIfTI on first request if it doesn't exist yet
         if not os.path.exists(nifti_file_path):
-            current_app.logger.error(f"NIfTI file not found at: {nifti_file_path}")
-            from flask import abort
-            abort(404)
+            current_app.logger.info(f"NIfTI not found at {nifti_file_path}, generating for default filter...")
+            from db_loading.generate_display_nifti import generate_display_nifti
+            result = generate_display_nifti(current_filter_id, {}, mask_type)
+            if not result:
+                current_app.logger.error("Could not generate display NIfTI — no matching records in database")
+                from flask import abort
+                abort(404)
 
     try:
         current_nii = load_nifti(nifti_file_path)
