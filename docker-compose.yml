@@ -17,8 +17,10 @@ services:
     build:
       context: ./backend
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/brain_dev
       - FILESTORE_PATH=/app/filestore
@@ -27,13 +29,18 @@ services:
       - "5001:5001"
     volumes:
       - ./frontend/src/app/custom_templates:/app/custom_templates
+      - filestore:/app/filestore
     networks:
       - app-network
 
   db:
     image: postgres:16
     healthcheck:
-      disable: true
+      test: ["CMD-SHELL", "pg_isready -U myuser -d brain_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     restart: always
     environment:
       POSTGRES_USER: myuser
@@ -58,3 +65,4 @@ networks:
 
 volumes:
   db_data:
+  filestore:

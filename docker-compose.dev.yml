@@ -14,8 +14,59 @@ services:
   backend:
     build:
       context: ./backend
-    command: ["flask", "--app", "app:app", "run", "--host=0.0.0.0", "--port=5001"]
+      target: dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/brain_dev
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FILESTORE_PATH=/app/filestore
+      - CUSTOM_TEMPLATES_PATH=/app/custom_templates
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./backend:/app
+      - ./frontend/src/app/custom_templates:/app/custom_templates
+      - filestore:/app/filestore
+    command: ["flask", "--app", "app:app", "run", "--host=0.0.0.0", "--port=5001", "--debug"]
+
+  db:
+    image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d brain_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: brain_dev
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: app-network
 
 volumes:
   frontend_node_modules:
   frontend_next_cache:
+  db_data:
+  filestore:
