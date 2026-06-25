@@ -24,10 +24,12 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
         
         if redis_cache.path_exists(redis_key):
             out_path = redis_cache.get_path(redis_key)
-            # Ensure out_path is a string, not bytes
             if isinstance(out_path, bytes):
                 out_path = out_path.decode('utf-8')
-            return send_from_directory(out_path, 'index.html') # already cached, so we return
+            if os.path.exists(os.path.join(out_path, 'index.html')):
+                return send_from_directory(out_path, 'index.html')
+            # Stale cache entry (viewer was never fully built) — fall through to regenerate
+            redis_cache.delete_path(redis_key)
 
         filestore_path = current_app.config['FILESTORE_PATH']
         out_path = os.path.abspath(os.path.join(
@@ -42,10 +44,13 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
             f'{nifti_id_str}.nii.gz'
         )
         
-        # Check if file exists
         if not os.path.exists(nifti_file_path):
-            from flask import abort
-            abort(404)
+            current_app.logger.info(f"NIfTI not found at {nifti_file_path}, generating on demand...")
+            from db_loading.generate_patient_nifti import generate_patient_nifti
+            result = generate_patient_nifti(nifti_id_str, filestore_path)
+            if not result:
+                from flask import abort
+                abort(404)
             
     else: # no nifti_id_str or nifti_dir, so we use the mask type from query parameter
         # Get mask type from query parameter, default to tumor if not specified
