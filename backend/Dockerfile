@@ -11,10 +11,14 @@ RUN mkdir -p /root/.config/pycortex
 
 COPY . .
 
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 5001
 
 # Set the template path environment variable
 ENV CUSTOM_TEMPLATES_PATH=/app/custom_templates
+
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Use Flask development server for development
 CMD ["flask", "--app", "app:app", "run", "--host=0.0.0.0", "--port=5001"]
@@ -32,6 +36,8 @@ RUN mkdir -p /root/.config/pycortex
 
 COPY . .
 
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 5001
 
 # Set the template path environment variable
@@ -39,6 +45,8 @@ ENV CUSTOM_TEMPLATES_PATH=/app/custom_templates
 
 # Install Gunicorn for production WSGI server
 RUN pip install gunicorn
+
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Use Gunicorn for production instead of Flask development server
 CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "4", "--timeout", "120", "--keep-alive", "2", "--preload", "app:app"]
