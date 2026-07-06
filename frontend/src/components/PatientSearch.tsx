@@ -637,6 +637,7 @@ export default function PatientSearch(props: PatientSearchProps) {
           niftiId={viewerData.niftiId}
           title={viewerData.title}
           dataType={viewerData.dataType}
+          tumorList={tumorList}
         />
       )}
 
