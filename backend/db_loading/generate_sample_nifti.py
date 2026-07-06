@@ -171,28 +171,22 @@ def create_mri_volume(tumors, timepoint_index=0, base_seed=None):
     if base_seed is not None:
         np.random.seed(base_seed + timepoint_index)
     
-    # Create base MRI volume with normal distribution around 0, range -10 to 10
-    volume = np.random.normal(0, 2.5, SHAPE).astype(np.float32)
-    # Clip to ensure values stay within -10 to 10 range
-    np.clip(volume, -10, 10, out=volume)  # In-place clipping (optimization)
-    
-    # Add tumor enhancement
+    volume = np.zeros(SHAPE, dtype=np.float32)
+
+    # Add tumor enhancement — zero background ensures only tumor region gets colored
     for tumor in tumors:
         center_x, center_y, center_z = tumor["center"]
         radius = tumor["radius"]
-        
-        # Use pre-calculated coordinate grids (optimization)
+
         distance = np.sqrt((X_GRID - center_x)**2 + (Y_GRID - center_y)**2 + (Z_GRID - center_z)**2)
-        
-        # Create tumor enhancement (stronger in center, falls off with distance)
-        base_enhancement = 3.0 + (timepoint_index * 0.2)  # Slight progression over time
-        enhancement_mask = np.exp(-distance / (radius * 0.8))  # Smooth falloff
-        
-        # Add enhancement to volume (in-place operation)
+
+        base_enhancement = 3.0 + (timepoint_index * 0.2)
+        enhancement_mask = np.exp(-distance / (radius * 0.8))
+
         volume += enhancement_mask * base_enhancement
-    
-    # Add temporal variation (in-place)
-    volume += np.random.normal(0, 0.5, SHAPE).astype(np.float32)
+
+    # Snap sub-threshold values to zero so non-tumor brain surface appears neutral
+    volume[volume < 0.3] = 0.0
     
     # Final clipping (in-place)
     np.clip(volume, -10, 10, out=volume)

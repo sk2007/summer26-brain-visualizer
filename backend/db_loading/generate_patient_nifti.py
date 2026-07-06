@@ -84,9 +84,7 @@ def generate_patient_nifti(nifti_data_id, filestore_path):
             0
         )
 
-        np.random.seed(base_seed + timepoint_idx)
-        volume = np.random.normal(0, 2.5, SHAPE).astype(np.float32)
-        np.clip(volume, -10, 10, out=volume)
+        volume = np.zeros(SHAPE, dtype=np.float32)
 
         for t in tumors:
             dist = np.sqrt(
@@ -97,7 +95,9 @@ def generate_patient_nifti(nifti_data_id, filestore_path):
             enhancement = 3.0 + (timepoint_idx * 0.2)
             volume += np.exp(-dist / (t['r'] * 0.8)) * enhancement
 
-        np.clip(volume, -10, 10, out=volume)
+        # Snap sub-threshold values to zero so non-tumor brain surface appears neutral
+        volume[volume < 0.3] = 0.0
+        np.clip(volume, 0, 10, out=volume)
 
     elif series_type == 'dose_mask':
         np.random.seed(base_seed + 1000)
