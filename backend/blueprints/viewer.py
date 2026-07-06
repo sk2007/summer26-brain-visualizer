@@ -119,9 +119,9 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
         os.makedirs(shared_out_path, exist_ok=True)
         os.makedirs(session_out_path, exist_ok=True)
         
-        # Center colormap at 0 so zero voxels appear neutral (white) and tumor signal appears red
-        vmax = float(max(abs(current_nii_volume_data.max()), abs(current_nii_volume_data.min()), 1e-6))
-        current_nii_volume = cortex.Volume(current_nii_volume_data, subject='S1', xfmname='fullhead', vmin=-vmax, vmax=vmax)
+        # vmin=0 so background (0) maps to light end; Reds colormap → tumors render as deep dark crimson
+        vmax = float(max(current_nii_volume_data.max(), 1e-6))
+        current_nii_volume = cortex.Volume(current_nii_volume_data, subject='S1', xfmname='fullhead', vmin=0, vmax=vmax, cmap='Reds')
 
         # Apply template patch lazily so pycortex can find custom_viewer.html
         global _template_patch_applied
