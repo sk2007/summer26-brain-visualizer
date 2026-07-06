@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, X, Maximize2, User, Loader2, ArrowLeft, Calendar, Heart, Ruler, Weight, Activity, Eye, Brain, Pill, Play } from 'lucide-react';
 import { useResizable } from '../hooks/useResizable';
 import BrainViewerModal from './BrainViewerModal';
+import MRIPlaybackModal from './MRIPlaybackModal';
 
 interface PatientSearchResult {
   id: string;
@@ -77,6 +78,7 @@ export default function PatientSearch(props: PatientSearchProps) {
     title: string;
     dataType: 'mri' | 'tumor' | 'dose';
   } | null>(null);
+  const [playbackOpen, setPlaybackOpen] = useState(false);
 
   // Resizable functionality
   const { width, isResizing, ResizeHandle } = useResizable({
@@ -496,9 +498,10 @@ export default function PatientSearch(props: PatientSearchProps) {
                     <div className="flex justify-between items-center">
                       <h3 className='text-lg font-semibold text-gray-900'>MRI Timeline</h3>
                       <button
-                        // onClick={() => handlePlayMRI()} // Add your onClick handler here
-                        className='p-2 text-[#2774AE] hover:bg-[#2774AE] hover:text-white rounded-md transition-colors'
-                        title='Play MRI Timeline'
+                        onClick={() => setPlaybackOpen(true)}
+                        disabled={mriTimeline.length === 0}
+                        className='p-2 text-[#2774AE] hover:bg-[#2774AE] hover:text-white rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed'
+                        title={mriTimeline.length === 0 ? 'No MRI scans available' : 'Play MRI Timeline'}
                       >
                         <Play className='w-4 h-4' />
                       </button>
@@ -636,6 +639,14 @@ export default function PatientSearch(props: PatientSearchProps) {
           dataType={viewerData.dataType}
         />
       )}
+
+      {/* MRI Playback Modal */}
+      <MRIPlaybackModal
+        isOpen={playbackOpen}
+        onClose={() => setPlaybackOpen(false)}
+        mriScans={mriTimeline}
+        patientName={selectedPatient ? selectedPatient.display_name : ''}
+      />
     </div>
   ) : null;
 } 
