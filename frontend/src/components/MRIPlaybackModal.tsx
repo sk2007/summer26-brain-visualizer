@@ -71,6 +71,7 @@ export default function MRIPlaybackModal({
     n > 6
       ? new Date(dateString).toLocaleDateString('en-US', {
           month: 'numeric',
+          day: 'numeric',
           year: 'numeric',
         })
       : new Date(dateString).toLocaleDateString('en-US', {
