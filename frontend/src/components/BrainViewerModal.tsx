@@ -96,13 +96,20 @@ export default function BrainViewerModal({
           </div>
 
           {/* Brain viewer iframe */}
-          <div className="flex-1 bg-gray-100 overflow-hidden">
+          <div className="flex-1 bg-gray-100 overflow-hidden relative">
             <iframe
               src={viewerUrl}
               className="w-full h-full border-0"
               title={`Brain Viewer - ${title}`}
               sandbox="allow-scripts allow-same-origin allow-forms"
             />
+            <div className="absolute bottom-3 right-3 pointer-events-none flex gap-3 bg-black/50 text-white text-xs rounded-md px-3 py-1.5 select-none">
+              <span>Drag · Rotate</span>
+              <span className="text-white/40">|</span>
+              <span>Right-drag · Pan</span>
+              <span className="text-white/40">|</span>
+              <span>Scroll · Zoom</span>
+            </div>
           </div>
         </div>
       </div>
