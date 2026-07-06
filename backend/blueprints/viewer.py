@@ -119,7 +119,9 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
         os.makedirs(shared_out_path, exist_ok=True)
         os.makedirs(session_out_path, exist_ok=True)
         
-        current_nii_volume = cortex.Volume(current_nii_volume_data, subject='S1', xfmname='fullhead')
+        # Center colormap at 0 so zero voxels appear neutral (white) and tumor signal appears red
+        vmax = float(max(abs(current_nii_volume_data.max()), abs(current_nii_volume_data.min()), 1e-6))
+        current_nii_volume = cortex.Volume(current_nii_volume_data, subject='S1', xfmname='fullhead', vmin=-vmax, vmax=vmax)
 
         # Apply template patch lazily so pycortex can find custom_viewer.html
         global _template_patch_applied
@@ -128,7 +130,7 @@ def req_visualize_brain(nifti_id_str=None, nifti_dir=None):
             _template_patch_applied = True
 
         # Create the static viewer files in shared directory
-        cortex.webgl.make_static(outpath=shared_out_path, data={ 'test': current_nii_volume }, recache=True, template='custom_viewer.html')
+        cortex.webgl.make_static(outpath=shared_out_path, data={ 'test': current_nii_volume }, recache=True, template='custom_viewer.html', labels_visible=(), overlays_visible=('sulci',))
         
         # Move only the index.html to the session-specific directory
         shared_index = os.path.join(shared_out_path, 'index.html')
