@@ -194,49 +194,28 @@ def create_mri_volume(tumors, timepoint_index=0, base_seed=None):
     return volume
 
 def create_dose_volume(tumors, base_seed=None):
-    """Create a dose volume with realistic dose distribution and tumor targeting."""
+    """Create a dose volume with smooth Gaussian dose distribution centered on tumors."""
     if base_seed is not None:
-        np.random.seed(base_seed + 1000)  # Different seed offset for dose generation
-    
-    # Create base dose volume (mostly zeros)
+        np.random.seed(base_seed + 1000)
+
     volume = np.zeros(SHAPE, dtype=np.float32)
-    
-    # Generate fewer dose spots for speed (reduce from 7% to 3%)
-    total_voxels = np.prod(SHAPE)
-    num_dose_spots = int(total_voxels * 0.03)  # 3% of voxels get dose
-    
-    # Random locations for dose spots
-    dose_indices = np.random.choice(total_voxels, num_dose_spots, replace=False)
-    z_coords, y_coords, x_coords = np.unravel_index(dose_indices, SHAPE)
-    
-    # Generate dose values (0-70, mean around 20)
-    dose_values = np.random.gamma(shape=2, scale=10, size=num_dose_spots)
-    np.clip(dose_values, 0, 70, out=dose_values)  # In-place clipping
-    
-    # Apply base doses
-    volume[z_coords, y_coords, x_coords] = dose_values
-    
-    # Enhance doses in tumor regions
+
     for tumor in tumors:
         center_x, center_y, center_z = tumor["center"]
         radius = tumor["radius"]
-        
-        # Use pre-calculated coordinate grids
-        distance = np.sqrt((X_GRID - center_x)**2 + (Y_GRID - center_y)**2 + (Z_GRID - center_z)**2)
-        
-        # Create tumor targeting enhancement
-        tumor_mask = distance <= (radius * 1.5)
-        
-        # Add additional dose spots in tumor region
-        tumor_region = np.where(tumor_mask)
-        if len(tumor_region[0]) > 0:
-            # Add targeted doses to tumor region
-            enhanced_doses = np.random.gamma(shape=3, scale=15, size=len(tumor_region[0]))
-            np.clip(enhanced_doses, 20, 70, out=enhanced_doses)
-            
-            # Combine with existing doses (take maximum)
-            volume[tumor_region] = np.maximum(volume[tumor_region], enhanced_doses)
-    
+        peak_dose = np.random.uniform(55, 70)
+        sigma = max(radius * 2.5, 2.0)
+        distance = np.sqrt(
+            (X_GRID - center_x) ** 2 +
+            (Y_GRID - center_y) ** 2 +
+            (Z_GRID - center_z) ** 2
+        )
+        volume += peak_dose * np.exp(-distance ** 2 / (2 * sigma ** 2))
+
+    # Smooth for realistic dose penumbra
+    volume = gaussian_filter(volume, sigma=1.5)
+    np.clip(volume, 0, 70, out=volume)
+
     return volume
 
 def calculate_dose_statistics(volume):

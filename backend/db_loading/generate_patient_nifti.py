@@ -100,27 +100,22 @@ def generate_patient_nifti(nifti_data_id, filestore_path):
         np.clip(volume, 0, 10, out=volume)
 
     elif series_type == 'dose_mask':
+        from scipy.ndimage import gaussian_filter
         np.random.seed(base_seed + 1000)
         volume = np.zeros(SHAPE, dtype=np.float32)
-        total_voxels = int(np.prod(SHAPE))
-        num_spots = int(total_voxels * 0.03)
-        indices = np.random.choice(total_voxels, num_spots, replace=False)
-        zc, yc, xc = np.unravel_index(indices, SHAPE)
-        doses = np.random.gamma(shape=2, scale=10, size=num_spots)
-        np.clip(doses, 0, 70, out=doses)
-        volume[zc, yc, xc] = doses
 
         for t in tumors:
+            peak_dose = np.random.uniform(55, 70)
+            sigma = max(t['r'] * 2.5, 2.0)
             dist = np.sqrt(
                 (X_GRID - t['x']) ** 2 +
                 (Y_GRID - t['y']) ** 2 +
                 (Z_GRID - t['z']) ** 2
             )
-            region = np.where(dist <= (t['r'] * 1.5))
-            if len(region[0]) > 0:
-                enhanced = np.random.gamma(shape=3, scale=15, size=len(region[0]))
-                np.clip(enhanced, 20, 70, out=enhanced)
-                volume[region] = np.maximum(volume[region], enhanced)
+            volume += peak_dose * np.exp(-dist ** 2 / (2 * sigma ** 2))
+
+        volume = gaussian_filter(volume, sigma=1.5)
+        np.clip(volume, 0, 70, out=volume)
 
     else:
         return None
