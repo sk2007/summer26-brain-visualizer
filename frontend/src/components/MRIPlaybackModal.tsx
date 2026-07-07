@@ -54,6 +54,16 @@ export default function MRIPlaybackModal({
     return () => window.removeEventListener('keydown', handleKey);
   }, [isOpen, activeIndex, goTo, onClose]);
 
+  // When activeIndex shifts, evict entries outside the ±1 window so the
+  // loading spinner reappears correctly if those iframes re-enter the window.
+  useEffect(() => {
+    setLoadedSet((prev) => {
+      const next = new Set<number>();
+      prev.forEach((i) => { if (Math.abs(i - activeIndex) <= 1) next.add(i); });
+      return next;
+    });
+  }, [activeIndex]);
+
   if (!isOpen || n === 0) return null;
 
   const activeScan = mriScans[activeIndex];
@@ -115,9 +125,11 @@ export default function MRIPlaybackModal({
           </div>
         )}
 
-        {/* All iframes: active one is on top and visible; others are hidden but stay mounted */}
+        {/* Only render iframes within ±1 of activeIndex to stay within browser WebGL context limits */}
         {mriScans.map((scan, index) => {
           const isActive = index === activeIndex;
+          const isAdjacent = Math.abs(index - activeIndex) <= 1;
+          if (!isAdjacent) return null;
           return (
             <iframe
               key={scan.id}
