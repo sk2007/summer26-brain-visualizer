@@ -279,31 +279,36 @@ def create_filter():
     id = request.json.get('id')
     name = request.json.get('name')
     criteria = request.json.get('criteria', {})
-    
+
     if not id or not name:
         return jsonify({ 'error': 'error: invalid filter' }), 400
 
     active_filters = get_stored_filters() # Get filters from Redis
     active_filters[id] = { 'name': name, 'criteria': criteria }
-    
+
+    nifti_generated = False
     # Generate the NIfTI file using the new criteria format and mask type from query parameter
     try:
         mask_type = request.args.get('maskType', 'tumor')  # Get from query parameter, default to tumor
         result_path = generate_display_nifti(id, criteria, mask_type)
-        
+
         if result_path:
             print(f"Successfully created NIfTI file at {result_path}")
             active_filters[id]['nifti_path'] = result_path
+            nifti_generated = True
         else:
-            print(f"Failed to create NIfTI file for filter {id}")
-            
+            current_app.logger.warning(f"NIfTI generation returned None for filter {id}")
+
     except Exception as e:
-        print(f"An error occurred while generating the NIfTI file: {e}")
+        current_app.logger.error(f"NIfTI generation failed for filter {id}: {e}")
 
     # Store the updated filters back to Redis
     store_filters(active_filters)
 
-    return jsonify({ 'message': 'success: filter added' }), 201
+    return jsonify({
+        'message': 'success: filter added',
+        'nifti_generated': nifti_generated
+    }), 201
 
 # modify filter
 @filters.route('/filters/<id>', methods=['PUT'])
