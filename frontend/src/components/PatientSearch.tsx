@@ -241,32 +241,7 @@ export default function PatientSearch(props: PatientSearchProps) {
     setViewerData(null);
   };
 
-  // Playback item arrays (derived from state)
-  const mriPlaybackItems: PlaybackItem[] = mriTimeline.map((mri) => ({
-    id: mri.id,
-    label: new Date(mri.date).toLocaleDateString('en-US', {
-      month: 'numeric', day: 'numeric', year: 'numeric',
-    }),
-    sublabel: mri.timepoint || undefined,
-  }));
-
-  const tumorPlaybackItems: PlaybackItem[] = tumorList.map((tumor) => ({
-    id: tumor.id,
-    label: tumor.location,
-    sublabel: `${tumor.volume_mm3.toFixed(1)} mm³`,
-  }));
-
-  const treatmentPlaybackItems: PlaybackItem[] = treatmentList.map((treatment) => ({
-    id: treatment.id,
-    label: treatment.type,
-    sublabel: [
-      treatment.dose != null ? `${treatment.dose} Gy` : null,
-      treatment.date ? formatDate(treatment.date) : null,
-    ]
-      .filter(Boolean)
-      .join(' · ') || undefined,
-  }));
-
+  // Helper functions
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
@@ -296,6 +271,32 @@ export default function PatientSearch(props: PatientSearchProps) {
     if (bmi < 30) return 'Overweight';
     return 'Obese';
   };
+
+  // Playback item arrays (derived from state)
+  const mriPlaybackItems: PlaybackItem[] = mriTimeline.map((mri) => ({
+    id: mri.id,
+    label: new Date(mri.date).toLocaleDateString('en-US', {
+      month: 'numeric', day: 'numeric', year: 'numeric',
+    }),
+    sublabel: mri.timepoint || undefined,
+  }));
+
+  const tumorPlaybackItems: PlaybackItem[] = tumorList.map((tumor) => ({
+    id: tumor.id,
+    label: tumor.location,
+    sublabel: `${tumor.volume_mm3.toFixed(1)} mm³`,
+  }));
+
+  const treatmentPlaybackItems: PlaybackItem[] = treatmentList.map((treatment) => ({
+    id: treatment.id,
+    label: treatment.type,
+    sublabel: [
+      treatment.dose != null ? `${treatment.dose} Gy` : null,
+      treatment.date ? formatDate(treatment.date) : null,
+    ]
+      .filter(Boolean)
+      .join(' · ') || undefined,
+  }));
 
   return props.patientSearchShowing ? (
     <div
