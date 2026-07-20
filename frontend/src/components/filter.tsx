@@ -107,6 +107,7 @@ export default function Filter(props: FilterProps) {
   const [editFilterModal, setEditFilterModal] = useState<FilterItem | null>(null);
   const [editFilterName, setEditFilterName] = useState('');
   const [editFilterCriteria, setEditFilterCriteria] = useState<FilterCriteria>({});
+  const [niftiWarningFilterId, setNiftiWarningFilterId] = useState<string | null>(null);
 
   // Fetch filter options from backend
   useEffect(() => {
@@ -455,6 +456,22 @@ export default function Filter(props: FilterProps) {
                                 Delete
                               </button>
                             </div>
+                            {niftiWarningFilterId === filter.id && (
+                              <div className="mt-1.5 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700 flex items-start gap-1.5">
+                                <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                                </svg>
+                                <span>
+                                  Filter saved, but brain visualization could not be generated. The filter will not render on the viewer.
+                                  <button
+                                    onClick={() => setNiftiWarningFilterId(null)}
+                                    className="ml-1 underline hover:no-underline"
+                                  >
+                                    Dismiss
+                                  </button>
+                                </span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           /* Sidepanel mode: adaptive layout based on width */
@@ -512,6 +529,22 @@ export default function Filter(props: FilterProps) {
                                 {width > 15 ? 'Delete' : 'D'}
                               </button>
                             </div>
+                            {niftiWarningFilterId === filter.id && (
+                              <div className="mt-1.5 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700 flex items-start gap-1.5">
+                                <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                                </svg>
+                                <span>
+                                  Filter saved, but brain visualization could not be generated. The filter will not render on the viewer.
+                                  <button
+                                    onClick={() => setNiftiWarningFilterId(null)}
+                                    className="ml-1 underline hover:no-underline"
+                                  >
+                                    Dismiss
+                                  </button>
+                                </span>
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
@@ -734,6 +767,9 @@ export default function Filter(props: FilterProps) {
                         setNewFilterName('');
                         setNewFilterCriteria({});
                         setNewFilterModal(false);
+                        if (data.nifti_generated === false) {
+                          setNiftiWarningFilterId(newFilter.id);
+                        }
                       })
                       .catch(error => {
                         console.error('error creating filter:', error);
