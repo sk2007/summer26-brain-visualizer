@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+// useFrame removed - not used in this component
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 

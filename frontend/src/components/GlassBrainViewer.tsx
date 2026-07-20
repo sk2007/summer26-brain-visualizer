@@ -163,7 +163,7 @@ export default function GlassBrainViewer({ refreshTrigger = 0 }: GlassBrainViewe
           <div
             className="w-full h-3 rounded-sm"
             style={{
-              background: 'linear-gradient(to right, hsl(252,100%,50%), hsl(180,100%,50%), hsl(72,100%,50%), hsl(0,100%,50%))',
+              background: 'linear-gradient(to right, hsl(252,100%,50%), hsl(168,100%,50%), hsl(84,100%,50%), hsl(0,100%,50%))',
             }}
           />
           <div className="flex justify-between text-[10px] text-white/60">
@@ -182,4 +182,4 @@ export default function GlassBrainViewer({ refreshTrigger = 0 }: GlassBrainViewe
       </div>
     </div>
   );
-} 
+}
