@@ -48,6 +48,8 @@ export default function GlassBrainViewer({ refreshTrigger = 0 }: GlassBrainViewe
     const brainMeshRef = useRef<THREE.Mesh>(null!);
     const [meshData, setMeshData] = useState<MeshData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [threshold, setThreshold] = useState(0.01);
+    const [opacityMultiplier, setOpacityMultiplier] = useState(20.0);
 
     // Fetch brain mesh data
     useEffect(() => {
@@ -88,25 +90,96 @@ export default function GlassBrainViewer({ refreshTrigger = 0 }: GlassBrainViewe
     }
 
   return (
-    <Canvas
-      camera={{ position: [0, 0, 250], fov: 50, up: [0, 1, 0] }}
-      style={{ background: '#e0e0e0', width: '100%', height: '100%' }}
-    >
-      <ambientLight intensity={0.5} />
-      <pointLight position={[100, 100, 100]} intensity={1} />
-      <React.Suspense fallback={<Loader />}>
-          {brainGeometry && brainBounds && (
-              <group rotation={[-Math.PI / 2, 0, 0]}>
-                  <BrainMesh geometry={brainGeometry} position={brainBounds.center.clone().negate()} />
-                  <VolumeRenderer brainSize={brainBounds.size} refreshTrigger={refreshTrigger} />
-              </group>
-          )}
-          <OrbitControls
-             enablePan={true}
-             enableZoom={true}
-             enableRotate={true}
-           />
-      </React.Suspense>
-    </Canvas>
+    <div className="relative w-full h-full">
+      <Canvas
+        camera={{ position: [0, 0, 250], fov: 50, up: [0, 1, 0] }}
+        style={{ background: '#e0e0e0', width: '100%', height: '100%' }}
+      >
+        <ambientLight intensity={0.5} />
+        <pointLight position={[100, 100, 100]} intensity={1} />
+        <React.Suspense fallback={<Loader />}>
+            {brainGeometry && brainBounds && (
+                <group rotation={[-Math.PI / 2, 0, 0]}>
+                    <BrainMesh geometry={brainGeometry} position={brainBounds.center.clone().negate()} />
+                    <VolumeRenderer
+                      brainSize={brainBounds.size}
+                      refreshTrigger={refreshTrigger}
+                      threshold={threshold}
+                      opacityMultiplier={opacityMultiplier}
+                    />
+                </group>
+            )}
+            <OrbitControls
+               enablePan={true}
+               enableZoom={true}
+               enableRotate={true}
+             />
+        </React.Suspense>
+      </Canvas>
+
+      {/* Overlay controls — pointer events stop at this panel so OrbitControls underneath still work */}
+      <div
+        className="absolute bottom-4 left-4 bg-black/60 text-white rounded-lg p-3 space-y-3 select-none"
+        style={{ minWidth: 200 }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        {/* Threshold slider */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span>Threshold</span>
+            <span>{threshold.toFixed(3)}</span>
+          </div>
+          <input
+            type="range"
+            min={0.001}
+            max={0.5}
+            step={0.001}
+            value={threshold}
+            onChange={(e) => setThreshold(parseFloat(e.target.value))}
+            className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-[#2774AE]"
+          />
+        </div>
+
+        {/* Opacity multiplier slider */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
+            <span>Opacity</span>
+            <span>{opacityMultiplier.toFixed(1)}</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={100}
+            step={1}
+            value={opacityMultiplier}
+            onChange={(e) => setOpacityMultiplier(parseFloat(e.target.value))}
+            className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-[#2774AE]"
+          />
+        </div>
+
+        {/* Color legend strip — matches the HSL colormap: blue (low) → red (high) */}
+        <div className="space-y-1">
+          <div className="text-xs">Intensity</div>
+          <div
+            className="w-full h-3 rounded-sm"
+            style={{
+              background: 'linear-gradient(to right, hsl(252,100%,50%), hsl(180,100%,50%), hsl(72,100%,50%), hsl(0,100%,50%))',
+            }}
+          />
+          <div className="flex justify-between text-[10px] text-white/60">
+            <span>Low</span>
+            <span>High</span>
+          </div>
+        </div>
+
+        {/* Reset button */}
+        <button
+          onClick={() => { setThreshold(0.01); setOpacityMultiplier(20.0); }}
+          className="w-full text-xs py-1 rounded bg-white/10 hover:bg-white/20 transition-colors"
+        >
+          Reset
+        </button>
+      </div>
+    </div>
   );
 } 
