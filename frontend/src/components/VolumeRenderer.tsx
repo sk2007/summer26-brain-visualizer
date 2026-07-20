@@ -162,7 +162,7 @@ export default function VolumeRenderer({
         };
 
         return { texture: tex, colormap: cmap, uniforms: uni };
-    }, [volumeData, threshold, opacityMultiplier]);
+    }, [volumeData]);
     
     if (error) {
         return <Html center><div style={{ color: 'red' }}>Error loading data: {error}</div></Html>;
@@ -185,4 +185,5 @@ export default function VolumeRenderer({
             />
         </mesh>
     );
-} 
+}
+ 
