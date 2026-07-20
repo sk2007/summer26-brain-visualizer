@@ -79,6 +79,26 @@ export default function DataView(props: DataProps) {
     }));
   };
 
+  const handleDeleteChart = async (chartId: string) => {
+    try {
+      const response = await fetch(`/api/charts/${chartId}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!response.ok) {
+        console.error('Failed to delete chart:', chartId);
+        return;
+      }
+      setActiveChartConfigs((prev) => {
+        const updated = { ...prev };
+        delete updated[chartId];
+        return updated;
+      });
+    } catch (err) {
+      console.error('Error deleting chart:', err);
+    }
+  };
+
   return props.dataShowing ? (
       <div
         className={`fixed top-0 h-screen bg-white shadow-lg ${
@@ -163,16 +183,23 @@ export default function DataView(props: DataProps) {
                 {Object.entries(activeChartConfigs).map(([chartId, config]) => {
                   if (config && config.data && config.layout) {
                     return (
-                      <div 
-                        key={chartId} 
-                        className={`border border-gray-200 rounded-lg overflow-hidden ${
-                          (isGridLayout && isFullScreen) 
-                            ? 'h-[400px]' 
-                            : isFullScreen 
-                              ? 'h-[500px]' 
+                      <div
+                        key={chartId}
+                        className={`relative border border-gray-200 rounded-lg overflow-hidden ${
+                          (isGridLayout && isFullScreen)
+                            ? 'h-[400px]'
+                            : isFullScreen
+                              ? 'h-[500px]'
                               : 'h-[300px]'
                         }`}
                       >
+                        <button
+                          onClick={() => handleDeleteChart(chartId)}
+                          className="absolute top-2 right-2 z-10 p-1 bg-white/80 hover:bg-red-100 hover:text-red-600 rounded-md transition-colors shadow-sm"
+                          title="Delete chart"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                         <Chart plotlyConfig={config} />
                       </div>
                     );
