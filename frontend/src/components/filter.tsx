@@ -839,11 +839,12 @@ export default function Filter(props: FilterProps) {
                       })
                       .then(response => response.json())
                       .then(data => {
-                        setFilters(prev => prev.map(f => 
-                          f.id === editFilterModal.id 
+                        setFilters(prev => prev.map(f =>
+                          f.id === editFilterModal.id
                             ? { ...f, name: editFilterName, criteria: editFilterCriteria }
                             : f
                         ));
+                        setNiftiWarningFilterId((prev) => prev === editFilterModal.id ? null : prev);
                         setEditFilterModal(null);
                       })
                       .catch(error => {
