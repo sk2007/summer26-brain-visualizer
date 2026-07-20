@@ -27,6 +27,7 @@ const volumeFragmentShader = `
     uniform sampler3D u_volume_tex;
     uniform sampler2D u_cm_texture;
     uniform float u_threshold;
+    uniform float u_opacity_multiplier;
     uniform float u_steps;
 
     // Helper function to apply a colormap to a scalar value
@@ -71,7 +72,7 @@ const volumeFragmentShader = `
                 vec4 color_sample = apply_colormap(value);
                 
                 // Increase opacity for better visibility
-                float opacity = color_sample.a * 20.0 / u_steps; 
+                float opacity = color_sample.a * u_opacity_multiplier / u_steps; 
                 accumulated_color.rgb += (1.0 - accumulated_color.a) * color_sample.rgb * opacity;
                 accumulated_color.a += (1.0 - accumulated_color.a) * opacity;
 
@@ -94,11 +95,19 @@ interface VolumeData {
 interface VolumeRendererProps {
     brainSize: THREE.Vector3;
     refreshTrigger?: number;
+    threshold?: number;
+    opacityMultiplier?: number;
 }
 
-export default function VolumeRenderer({ brainSize, refreshTrigger = 0 }: VolumeRendererProps) {
+export default function VolumeRenderer({
+    brainSize,
+    refreshTrigger = 0,
+    threshold = 0.01,
+    opacityMultiplier = 20.0,
+}: VolumeRendererProps) {
     const [volumeData, setVolumeData] = useState<VolumeData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const materialRef = useRef<THREE.ShaderMaterial>(null!);
 
     useEffect(() => {
         fetch('/api/glass_brain/volume_data').then(res => res.json())
@@ -110,6 +119,13 @@ export default function VolumeRenderer({ brainSize, refreshTrigger = 0 }: Volume
             setError(e.message);
         });
     }, [refreshTrigger]);
+
+    useEffect(() => {
+        if (materialRef.current) {
+            materialRef.current.uniforms.u_threshold.value = threshold;
+            materialRef.current.uniforms.u_opacity_multiplier.value = opacityMultiplier;
+        }
+    }, [threshold, opacityMultiplier]);
 
     const { texture, colormap, uniforms } = useMemo(() => {
         if (!volumeData) return { texture: null, colormap: null, uniforms: null };
@@ -140,12 +156,13 @@ export default function VolumeRenderer({ brainSize, refreshTrigger = 0 }: Volume
             u_volume_dims: { value: new THREE.Vector3(...dims) },
             u_volume_tex: { value: tex },
             u_cm_texture: { value: cmap },
-            u_threshold: { value: 0.01 }, // Lower threshold to match colormap
+            u_threshold: { value: threshold },
+            u_opacity_multiplier: { value: opacityMultiplier },
             u_steps: { value: 100.0 },
         };
-        
+
         return { texture: tex, colormap: cmap, uniforms: uni };
-    }, [volumeData]);
+    }, [volumeData, threshold, opacityMultiplier]);
     
     if (error) {
         return <Html center><div style={{ color: 'red' }}>Error loading data: {error}</div></Html>;
@@ -159,6 +176,7 @@ export default function VolumeRenderer({ brainSize, refreshTrigger = 0 }: Volume
         <mesh scale={brainSize}>
             <boxGeometry args={[1, 1, 1]} />
             <shaderMaterial
+                ref={materialRef}
                 uniforms={uniforms}
                 vertexShader={volumeVertexShader}
                 fragmentShader={volumeFragmentShader}
