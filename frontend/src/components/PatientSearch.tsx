@@ -79,6 +79,8 @@ export default function PatientSearch(props: PatientSearchProps) {
     dataType: 'mri' | 'tumor' | 'dose';
   } | null>(null);
   const [playbackOpen, setPlaybackOpen] = useState(false);
+  const [tumorPlaybackOpen, setTumorPlaybackOpen] = useState(false);
+  const [treatmentPlaybackOpen, setTreatmentPlaybackOpen] = useState(false);
 
   // Resizable functionality
   const { width, isResizing, ResizeHandle } = useResizable({
@@ -238,6 +240,32 @@ export default function PatientSearch(props: PatientSearchProps) {
     setBrainViewerOpen(false);
     setViewerData(null);
   };
+
+  // Playback item arrays (derived from state)
+  const mriPlaybackItems: PlaybackItem[] = mriTimeline.map((mri) => ({
+    id: mri.id,
+    label: new Date(mri.date).toLocaleDateString('en-US', {
+      month: 'numeric', day: 'numeric', year: 'numeric',
+    }),
+    sublabel: mri.timepoint || undefined,
+  }));
+
+  const tumorPlaybackItems: PlaybackItem[] = tumorList.map((tumor) => ({
+    id: tumor.id,
+    label: tumor.location,
+    sublabel: `${tumor.volume_mm3.toFixed(1)} mm³`,
+  }));
+
+  const treatmentPlaybackItems: PlaybackItem[] = treatmentList.map((treatment) => ({
+    id: treatment.id,
+    label: treatment.type,
+    sublabel: [
+      treatment.dose != null ? `${treatment.dose} Gy` : null,
+      treatment.date ? formatDate(treatment.date) : null,
+    ]
+      .filter(Boolean)
+      .join(' · ') || undefined,
+  }));
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
@@ -539,9 +567,10 @@ export default function PatientSearch(props: PatientSearchProps) {
                     <div className="flex justify-between items-center">
                       <h3 className='text-lg font-semibold text-gray-900'>Tumor Summary</h3>
                       <button
-                        // onClick={() => handlePlayTumor()} // Add your onClick handler here
-                        className='p-2 text-green-600 hover:bg-green-600 hover:text-white rounded-md transition-colors'
-                        title='Play Tumor Timeline'
+                        onClick={() => setTumorPlaybackOpen(true)}
+                        disabled={tumorList.length === 0}
+                        className='p-2 text-green-600 hover:bg-green-600 hover:text-white rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed'
+                        title={tumorList.length === 0 ? 'No tumor data available' : 'Play Tumor Masks'}
                       >
                         <Play className='w-4 h-4' />
                       </button>
@@ -579,9 +608,10 @@ export default function PatientSearch(props: PatientSearchProps) {
                     <div className="flex justify-between items-center">
                       <h3 className='text-lg font-semibold text-gray-900'>Treatment Summary</h3>
                       <button
-                        // onClick={() => handlePlayTreatment()} // Add your onClick handler here
-                        className='p-2 text-purple-600 hover:bg-purple-600 hover:text-white rounded-md transition-colors'
-                        title='Play Treatment Timeline'
+                        onClick={() => setTreatmentPlaybackOpen(true)}
+                        disabled={treatmentList.length === 0}
+                        className='p-2 text-purple-600 hover:bg-purple-600 hover:text-white rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed'
+                        title={treatmentList.length === 0 ? 'No treatment data available' : 'Play Treatment Masks'}
                       >
                         <Play className='w-4 h-4' />
                       </button>
@@ -641,20 +671,30 @@ export default function PatientSearch(props: PatientSearchProps) {
         />
       )}
 
-      {/* MRI Playback Modal */}
+      {/* MRI Playback */}
       <PlaybackModal
         isOpen={playbackOpen}
         onClose={() => setPlaybackOpen(false)}
-        items={mriTimeline.map((mri) => ({
-          id: mri.id,
-          label: new Date(mri.date).toLocaleDateString('en-US', {
-            month: 'numeric',
-            day: 'numeric',
-            year: 'numeric',
-          }),
-          sublabel: mri.timepoint,
-        }))}
+        items={mriPlaybackItems}
         modalTitle="MRI Timeline"
+        patientName={selectedPatient ? selectedPatient.display_name : ''}
+      />
+
+      {/* Tumor Playback */}
+      <PlaybackModal
+        isOpen={tumorPlaybackOpen}
+        onClose={() => setTumorPlaybackOpen(false)}
+        items={tumorPlaybackItems}
+        modalTitle="Tumor Masks"
+        patientName={selectedPatient ? selectedPatient.display_name : ''}
+      />
+
+      {/* Treatment Playback */}
+      <PlaybackModal
+        isOpen={treatmentPlaybackOpen}
+        onClose={() => setTreatmentPlaybackOpen(false)}
+        items={treatmentPlaybackItems}
+        modalTitle="Treatment / Dose Masks"
         patientName={selectedPatient ? selectedPatient.display_name : ''}
       />
     </div>
