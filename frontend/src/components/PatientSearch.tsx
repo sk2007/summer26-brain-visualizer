@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, X, Maximize2, User, Loader2, ArrowLeft, Calendar, Heart, Ruler, Weight, Activity, Eye, Brain, Pill, Play } from 'lucide-react';
 import { useResizable } from '../hooks/useResizable';
 import BrainViewerModal from './BrainViewerModal';
-import MRIPlaybackModal from './MRIPlaybackModal';
+import PlaybackModal, { PlaybackItem } from './MRIPlaybackModal';
 
 interface PatientSearchResult {
   id: string;
@@ -642,10 +642,19 @@ export default function PatientSearch(props: PatientSearchProps) {
       )}
 
       {/* MRI Playback Modal */}
-      <MRIPlaybackModal
+      <PlaybackModal
         isOpen={playbackOpen}
         onClose={() => setPlaybackOpen(false)}
-        mriScans={mriTimeline}
+        items={mriTimeline.map((mri) => ({
+          id: mri.id,
+          label: new Date(mri.date).toLocaleDateString('en-US', {
+            month: 'numeric',
+            day: 'numeric',
+            year: 'numeric',
+          }),
+          sublabel: mri.timepoint,
+        }))}
+        modalTitle="MRI Timeline"
         patientName={selectedPatient ? selectedPatient.display_name : ''}
       />
     </div>

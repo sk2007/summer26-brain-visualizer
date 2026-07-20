@@ -3,29 +3,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
-interface MRITimelineItem {
+export interface PlaybackItem {
   id: string;
-  date: string;
-  timepoint: string;
+  label: string;
+  sublabel?: string;
 }
 
-interface MRIPlaybackModalProps {
+interface PlaybackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mriScans: MRITimelineItem[];
+  items: PlaybackItem[];
+  modalTitle: string;
   patientName: string;
 }
 
-export default function MRIPlaybackModal({
+export default function PlaybackModal({
   isOpen,
   onClose,
-  mriScans,
+  items,
+  modalTitle,
   patientName,
-}: MRIPlaybackModalProps) {
+}: PlaybackModalProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [loadedSet, setLoadedSet] = useState<Set<number>>(new Set());
 
-  const n = mriScans.length;
+  const n = items.length;
 
   const goTo = useCallback(
     (index: number) => {
@@ -66,29 +68,9 @@ export default function MRIPlaybackModal({
 
   if (!isOpen || n === 0) return null;
 
-  const activeScan = mriScans[activeIndex];
+  const activeItem = items[activeIndex];
   const isMultiple = n > 1;
   const isActiveLoaded = loadedSet.has(activeIndex);
-
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-US', {
-      month: 'numeric',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
-  const formatTickLabel = (dateString: string) =>
-    n > 6
-      ? new Date(dateString).toLocaleDateString('en-US', {
-          month: 'numeric',
-          day: 'numeric',
-          year: 'numeric',
-        })
-      : new Date(dateString).toLocaleDateString('en-US', {
-          month: 'numeric',
-          day: 'numeric',
-          year: 'numeric',
-        });
 
   const markLoaded = (index: number) =>
     setLoadedSet((prev) => new Set([...prev, index]));
@@ -101,7 +83,7 @@ export default function MRIPlaybackModal({
           <span className="text-white font-semibold text-lg truncate max-w-xs">
             {patientName}
           </span>
-          <span className="text-gray-400 text-sm flex-shrink-0">MRI Timeline</span>
+          <span className="text-gray-400 text-sm flex-shrink-0">{modalTitle}</span>
         </div>
         <span className="text-gray-300 text-sm font-medium flex-shrink-0">
           Scan {activeIndex + 1} of {n}
@@ -126,15 +108,15 @@ export default function MRIPlaybackModal({
         )}
 
         {/* Only render iframes within ±1 of activeIndex to stay within browser WebGL context limits */}
-        {mriScans.map((scan, index) => {
+        {items.map((item, index) => {
           const isActive = index === activeIndex;
           const isAdjacent = Math.abs(index - activeIndex) <= 1;
           if (!isAdjacent) return null;
           return (
             <iframe
-              key={scan.id}
-              src={`/api/viewer/${scan.id}/test_db_nifti`}
-              title={`MRI scan ${index + 1} — ${formatDate(scan.date)}`}
+              key={item.id}
+              src={`/api/viewer/${item.id}/test_db_nifti`}
+              title={`${modalTitle} ${index + 1} — ${item.label}`}
               onLoad={() => markLoaded(index)}
               sandbox="allow-scripts allow-same-origin allow-forms"
               style={{
@@ -157,15 +139,13 @@ export default function MRIPlaybackModal({
       <div className="flex-shrink-0 bg-gray-900 border-t border-gray-700 px-6 py-4 space-y-3">
         {/* Metadata row */}
         <div className="flex items-center space-x-3 text-sm text-gray-300">
-          <span className="font-medium text-white">{formatDate(activeScan.date)}</span>
+          <span className="font-medium text-white">{activeItem.label}</span>
           <span className="text-gray-600">·</span>
-          <span>MRI</span>
-          <span className="text-gray-600">·</span>
-          <span>Scan {activeIndex + 1} of {n}</span>
-          {activeScan.timepoint && (
+          <span>Item {activeIndex + 1} of {n}</span>
+          {activeItem.sublabel && (
             <>
               <span className="text-gray-600">·</span>
-              <span className="text-gray-500">{activeScan.timepoint}</span>
+              <span className="text-gray-500">{activeItem.sublabel}</span>
             </>
           )}
         </div>
@@ -192,19 +172,17 @@ export default function MRIPlaybackModal({
                 onChange={(e) => goTo(parseInt(e.target.value, 10))}
                 className="w-full h-2 bg-gray-600 rounded-full appearance-none cursor-pointer accent-[#2774AE]"
               />
-              {/* Date tick labels — positioned by percentage across the scrubber width */}
+              {/* Tick labels — positioned by percentage across the scrubber width */}
               <div className="relative h-4">
-                {mriScans.map((scan, index) => (
+                {items.map((item, index) => (
                   <span
-                    key={scan.id}
+                    key={item.id}
                     className={`absolute text-xs transform -translate-x-1/2 whitespace-nowrap transition-colors ${
-                      index === activeIndex
-                        ? 'text-[#2774AE] font-medium'
-                        : 'text-gray-500'
+                      index === activeIndex ? 'text-[#2774AE] font-medium' : 'text-gray-500'
                     }`}
-                    style={{ left: `${(index / (n - 1)) * 100}%` }}
+                    style={{ left: n > 1 ? `${(index / (n - 1)) * 100}%` : '50%' }}
                   >
-                    {formatTickLabel(scan.date)}
+                    {item.label}
                   </span>
                 ))}
               </div>
