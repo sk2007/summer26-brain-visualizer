@@ -28,6 +28,7 @@ def get_nifti_info(nifti_id):
         header = img.header
         dims = [int(d) for d in header.get_data_shape()[:3]]
         zooms = [round(float(z), 4) for z in header.get_zooms()[:3]]
+        del img
         return jsonify({
             'dims': dims,
             'voxel_size_mm': zooms,
