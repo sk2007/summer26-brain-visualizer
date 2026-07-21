@@ -34,6 +34,7 @@ export default function BrainViewerModal({
 
   React.useEffect(() => {
     if (!isOpen) return;
+    let cancelled = false;
     setNiftiMeta(null);
     setMetaError(false);
     fetch(`/api/nifti-info/${niftiId}`)
@@ -41,8 +42,9 @@ export default function BrainViewerModal({
         if (!r.ok) throw new Error('not found');
         return r.json();
       })
-      .then((data) => setNiftiMeta(data))
-      .catch(() => setMetaError(true));
+      .then((data) => { if (!cancelled) setNiftiMeta(data); })
+      .catch(() => { if (!cancelled) setMetaError(true); });
+    return () => { cancelled = true; };
   }, [isOpen, niftiId]);
 
   if (!isOpen) return null;
