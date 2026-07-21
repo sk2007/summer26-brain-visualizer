@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Maximize2, Minimize2, Brain } from 'lucide-react';
+import { X, Maximize2, Minimize2, Brain, RotateCcw } from 'lucide-react';
 
 interface TumorItem {
   id: string;
@@ -25,6 +25,25 @@ export default function BrainViewerModal({
   tumorList = [],
 }: BrainViewerModalProps) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [reloadKey, setReloadKey] = React.useState(0);
+  const [niftiMeta, setNiftiMeta] = React.useState<{
+    dims: number[];
+    voxel_size_mm: number[];
+  } | null>(null);
+  const [metaError, setMetaError] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setNiftiMeta(null);
+    setMetaError(false);
+    fetch(`/api/nifti-info/${niftiId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error('not found');
+        return r.json();
+      })
+      .then((data) => setNiftiMeta(data))
+      .catch(() => setMetaError(true));
+  }, [isOpen, niftiId]);
 
   if (!isOpen) return null;
 
@@ -44,6 +63,13 @@ export default function BrainViewerModal({
             <p className="text-sm text-gray-500 capitalize">{dataType} visualization</p>
           </div>
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="p-2 hover:bg-gray-200 rounded-md transition-colors"
+              title="Reload viewer"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </button>
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
               className="p-2 hover:bg-gray-200 rounded-md transition-colors"
@@ -93,11 +119,37 @@ export default function BrainViewerModal({
                 ))}
               </div>
             )}
+
+            {/* NIfTI Metadata */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
+                File Info
+              </p>
+              {niftiMeta ? (
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Dimensions</span>
+                    <span className="text-white font-mono">{niftiMeta.dims.join(' × ')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Voxel size</span>
+                    <span className="text-white font-mono">
+                      {niftiMeta.voxel_size_mm.map((v) => v.toFixed(2)).join(' × ')} mm
+                    </span>
+                  </div>
+                </div>
+              ) : metaError ? (
+                <p className="text-xs text-gray-500">Not available</p>
+              ) : (
+                <p className="text-xs text-gray-500 animate-pulse">Loading…</p>
+              )}
+            </div>
           </div>
 
           {/* Brain viewer iframe */}
           <div className="flex-1 bg-gray-100 overflow-hidden relative">
             <iframe
+              key={reloadKey}
               src={viewerUrl}
               className="w-full h-full border-0"
               title={`Brain Viewer - ${title}`}
