@@ -76,13 +76,14 @@ backend/
 - **Locally:** the existing `docker-compose` Postgres (port 5432) serves this.
 - **In CI:** a GitHub Actions `postgres:16` service container serves it.
 
-### Per-test isolation — transaction rollback
+### Per-test isolation — table truncation
 
-Each test runs inside a database transaction that is rolled back at teardown.
-Tables are created once per session; individual tests never see each other's
-writes and the suite stays fast. Use the standard SQLAlchemy pattern: bind a
-connection, begin a transaction, bind the session to that connection, and roll
-back after the test.
+Tables are created once per session (`create_all`). After each test, an
+autouse fixture deletes all rows from every table in FK-safe order. This keeps
+tests isolated and the suite fast, and is robust against the fact that the app
+code itself calls `db.session.commit()` in the persistence paths — which would
+fight a SAVEPOINT/nested-transaction rollback scheme. Truncation sidesteps that
+entirely and needs no rebinding of `db.session`.
 
 ### Redis — in-memory fake via monkeypatch
 
@@ -99,7 +100,7 @@ back after the test.
 | Fixture | Scope | Responsibility |
 | --- | --- | --- |
 | `app` | session | Set `DATABASE_URL`→test DB before importing `app`; ensure `brain_test` exists; `create_all` / `drop_all`; set `TESTING=True`. |
-| `db_session` | function | Transaction-per-test with rollback. |
+| `clean_tables` | function (autouse) | Delete all rows from every table after each test, FK-safe order. |
 | `client` | function | `app.test_client()`. |
 | `fake_redis` | function | Monkeypatch `app.redis_cache` with the dict-backed fake; auto-used by tests that need cache control. |
 | seed helpers | n/a | Plain functions that insert `Patients`, `NiftiData`, `TumorMask`, `DoseMask` rows with deterministic values. No `factory_boy`. |
@@ -192,10 +193,10 @@ hand-rolled to keep the dependency surface minimal.
 - **`before_request` runs on every test-client request** and assigns a
   `user_id`; to control per-user scoping, set the session explicitly with
   `client.session_transaction()` before issuing requests.
-- **Transaction rollback vs. commits in app code.** `store_charts` / `delete_chart`
-  call `db.session.commit()`. The isolation fixture must use the
-  join-an-external-transaction (SAVEPOINT) pattern so that app-level commits don't
-  break rollback isolation.
+- **App code commits mid-test.** `store_charts` / `delete_chart` call
+  `db.session.commit()`. This is why isolation uses table truncation (delete all
+  rows after each test) rather than a rollback scheme the app's own commits would
+  defeat.
 
 ## Success Criteria
 
