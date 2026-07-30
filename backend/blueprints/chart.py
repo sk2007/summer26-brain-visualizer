@@ -236,6 +236,10 @@ def create_chart():
     data = request.json.get('data')
     title = request.json.get('title')
     
+    # Reject IDs that collide with built-in defaults to prevent Redis corruption
+    if id in get_default_charts():
+        return jsonify({'error': 'chart id conflicts with a default chart'}), 400
+
     # Store the chart definition
     active_charts_copy = get_stored_charts() # Get charts from Redis
     active_charts_copy[id] = {
@@ -306,7 +310,7 @@ def delete_chart(id):
     except Exception as e:
         db.session.rollback()
         print(f"Error deleting chart from DB: {e}")
-        # Continue — Redis delete still happens even if DB fails
+        return jsonify({'error': 'Failed to delete chart'}), 500
 
     del active_charts_copy[id]
     store_charts(active_charts_copy)
