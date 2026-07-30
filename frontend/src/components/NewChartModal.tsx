@@ -44,6 +44,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
   const [selectedXField, setSelectedXField] = useState<string>('');
   const [selectedYField, setSelectedYField] = useState<string>('');
   const [isFetchingData, setIsFetchingData] = useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   // Fetch filters on component mount
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    fetch(`${baseURL}/api/chart-fields`)
+    fetch(`${baseURL}/api/chart-fields`, { credentials: 'include' })
       .then((r) => r.json())
       .then((data) => { if (!cancelled) setFieldDefs(data.fields || []); })
       .catch((e) => { if (!cancelled) console.error('Error fetching chart fields:', e); });
@@ -111,16 +112,19 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
     setSelectedXField('');
     setSelectedYField('');
     setIsFetchingData(false);
+    setErrorMessage(null);
   };
 
   // Handle chart creation
   const createChart = async () => {
     if (!selectedChartType || !selectedXField || !selectedYField) return;
+    setErrorMessage(null);
     setIsFetchingData(true);
     try {
       // 1. Fetch field data from the backend for the active filter
       const dataRes = await fetch(`${baseURL}/api/chart-data`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           filter_id: selectedFilter || 'default_id',
@@ -130,6 +134,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
       });
       if (!dataRes.ok) {
         console.error('Failed to fetch chart data');
+        setErrorMessage('Failed to fetch chart data. Please try again.');
         return;
       }
       const { x, y } = await dataRes.json();
@@ -163,6 +168,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
       });
       if (!chartRes.ok) {
         console.error('Failed to create chart');
+        setErrorMessage('Failed to create chart. Please try again.');
         return;
       }
       const config = await chartRes.json();
@@ -324,6 +330,9 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
             {isFetchingData ? 'Loading data…' : 'Create Chart'}
           </button>
         </div>
+        {errorMessage && (
+          <p className="text-xs text-red-600 mt-1">{errorMessage}</p>
+        )}
       </div>
     </div>
   );
