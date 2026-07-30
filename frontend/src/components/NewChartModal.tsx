@@ -82,12 +82,13 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetch('/api/chart-fields')
-        .then((r) => r.json())
-        .then((data) => setFieldDefs(data.fields || []))
-        .catch((e) => console.error('Error fetching chart fields:', e));
-    }
+    if (!isOpen) return;
+    let cancelled = false;
+    fetch(`${baseURL}/api/chart-fields`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setFieldDefs(data.fields || []); })
+      .catch((e) => { if (!cancelled) console.error('Error fetching chart fields:', e); });
+    return () => { cancelled = true; };
   }, [isOpen]);
 
   // Handle form input changes
@@ -118,7 +119,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
     setIsFetchingData(true);
     try {
       // 1. Fetch field data from the backend for the active filter
-      const dataRes = await fetch('/api/chart-data', {
+      const dataRes = await fetch(`${baseURL}/api/chart-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
