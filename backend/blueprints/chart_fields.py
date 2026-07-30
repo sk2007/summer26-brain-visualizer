@@ -148,6 +148,55 @@ def _get_patient_ids_for_filter(filter_id):
                     )
             if field_filters:
                 q = q.filter(db.or_(*field_filters))
+
+    tumor_chars = criteria.get('tumor_characteristics', {})
+    if tumor_chars.get('tumor_location'):
+        locations = [
+            item if isinstance(item, str) else item.get('label', str(item))
+            for item in tumor_chars['tumor_location']
+        ]
+        q = q.filter(
+            Patients.id.in_(
+                db.session.query(NiftiData.patient_id)
+                .join(TumorMask, TumorMask.id == NiftiData.id)
+                .filter(TumorMask.location.in_(locations))
+            )
+        )
+    volume_range = tumor_chars.get('tumor_volume_range', [])
+    if volume_range:
+        vol_filters = []
+        for opt in volume_range:
+            if isinstance(opt, dict):
+                vol_filters.append(
+                    TumorMask.volume_mm3.between(opt.get('min', 0), opt.get('max', 999999))
+                )
+        if vol_filters:
+            q = q.filter(
+                Patients.id.in_(
+                    db.session.query(NiftiData.patient_id)
+                    .join(TumorMask, TumorMask.id == NiftiData.id)
+                    .filter(db.or_(*vol_filters))
+                )
+            )
+
+    treatment = criteria.get('treatment_data', {})
+    dose_range = treatment.get('dose_range', [])
+    if dose_range:
+        dose_filters = []
+        for opt in dose_range:
+            if isinstance(opt, dict):
+                dose_filters.append(
+                    DoseMask.max_dose.between(opt.get('min', 0), opt.get('max', 999999))
+                )
+        if dose_filters:
+            q = q.filter(
+                Patients.id.in_(
+                    db.session.query(NiftiData.patient_id)
+                    .join(DoseMask, DoseMask.id == NiftiData.id)
+                    .filter(db.or_(*dose_filters))
+                )
+            )
+
     return [str(p.id) for p in q.with_entities(Patients.id).all()]
 
 
@@ -220,10 +269,15 @@ def get_chart_data():
     if x_field not in FIELD_REGISTRY or y_field not in FIELD_REGISTRY:
         return jsonify({'error': 'unknown field key'}), 400
 
+    x_table = FIELD_REGISTRY[x_field]['table']
+    y_table = FIELD_REGISTRY[y_field]['table']
+    if x_table != y_table:
+        # Mixed patient-level vs mask-level: arrays will be different lengths.
+        # Return an error rather than silently misaligning data.
+        return jsonify({'error': 'Cannot mix patient-level and mask-level fields in the same chart. Choose fields from the same category.'}), 400
+
     patient_ids = _get_patient_ids_for_filter(filter_id)
     x_values = _fetch_field_values(x_field, patient_ids)
     y_values = _fetch_field_values(y_field, patient_ids)
 
-    # For scatter/line: pair rows. For cross-table fields, pair by positional index
-    # (lengths may differ when mixing patient vs. tumor fields).
     return jsonify({'x': x_values, 'y': y_values})
