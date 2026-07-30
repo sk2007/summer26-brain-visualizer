@@ -154,3 +154,13 @@ class MRIMask(db.Model):
         "NiftiData",
         back_populates="mri_mask"
     )
+
+class SavedChart(db.Model):
+    __tablename__ = 'saved_charts'
+
+    id = db.Column(db.String, primary_key=True)          # UUID string from client
+    user_id = db.Column(db.String, nullable=False, index=True)
+    chart_type = db.Column(db.String, nullable=False)
+    title = db.Column(db.String, nullable=True)
+    data = db.Column(db.JSON, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
