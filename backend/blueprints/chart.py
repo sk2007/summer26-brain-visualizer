@@ -1,38 +1,90 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from .chart_creators import chart_creation_map
 
 chart = Blueprint('chart', __name__, url_prefix='/api')
 
+def _user_charts_key():
+    user_id = session.get('user_id', 'anonymous')
+    return f'stored_charts:{user_id}'
+
+
 def get_stored_charts():
-    """Get charts stored in Redis, fallback to default if none exist."""
-    try:
-        from app import redis_cache
-        # Try to get charts from Redis
-        charts_key = 'stored_charts'
-        stored_charts = redis_cache.get_path(charts_key)
-        
-        if stored_charts:
-            import json
-            # Handle Redis returning bytes
-            if isinstance(stored_charts, bytes):
-                stored_charts = stored_charts.decode('utf-8')
-            return json.loads(stored_charts)
-        else:
-            # Return default charts if none stored
-            return get_default_charts()
-    except Exception as e:
-        print(f"Error getting stored charts: {e}")
-        return get_default_charts()
+    """Load charts for the current user: Redis first, then DB, then defaults."""
+    from app import redis_cache
+    from models import SavedChart
+    import json
+
+    charts_key = _user_charts_key()
+    user_id = session.get('user_id', 'anonymous')
+
+    # 1. Try Redis
+    raw = redis_cache.get_path(charts_key)
+    if raw:
+        if isinstance(raw, bytes):
+            raw = raw.decode('utf-8')
+        return json.loads(raw)
+
+    # 2. Redis miss: load from DB
+    db_charts = SavedChart.query.filter_by(user_id=user_id).all()
+    if db_charts:
+        charts_dict = {
+            c.id: {'type': c.chart_type, 'title': c.title, 'data': c.data}
+            for c in db_charts
+        }
+        store_charts(charts_dict)          # warm the cache
+        return charts_dict
+
+    # 3. No saved charts: return defaults (do NOT persist defaults to DB)
+    defaults = get_default_charts()
+    store_charts(defaults)
+    return defaults
 
 def store_charts(charts_dict):
-    """Store charts in Redis."""
+    """Write charts to Redis (always) and sync to DB (skip default IDs)."""
+    from app import redis_cache, db
+    from models import SavedChart
+    import json
+
+    charts_key = _user_charts_key()
+    user_id = session.get('user_id', 'anonymous')
+
+    # Always update Redis
+    redis_cache.set_path(charts_key, json.dumps(charts_dict))
+
+    # Skip DB writes for the built-in default IDs ("1"–"6")
+    default_ids = set(get_default_charts().keys())
+    user_chart_ids = set(charts_dict.keys()) - default_ids
+    if not user_chart_ids:
+        return
+
     try:
-        from app import redis_cache
-        import json
-        charts_key = 'stored_charts'
-        redis_cache.set_path(charts_key, json.dumps(charts_dict))
+        # Upsert user charts to DB
+        existing_ids = {
+            c.id for c in SavedChart.query.filter(
+                SavedChart.user_id == user_id,
+                SavedChart.id.in_(user_chart_ids)
+            ).all()
+        }
+        for chart_id in user_chart_ids:
+            info = charts_dict[chart_id]
+            if chart_id in existing_ids:
+                SavedChart.query.filter_by(id=chart_id, user_id=user_id).update({
+                    'chart_type': info['type'],
+                    'title': info.get('title'),
+                    'data': info['data'],
+                })
+            else:
+                db.session.add(SavedChart(
+                    id=chart_id,
+                    user_id=user_id,
+                    chart_type=info['type'],
+                    title=info.get('title'),
+                    data=info['data'],
+                ))
+        db.session.commit()
     except Exception as e:
-        print(f"Error storing charts: {e}")
+        db.session.rollback()
+        print(f"Error persisting charts to DB: {e}")
 
 def get_default_charts():
     """Create a fresh copy of default charts for each request."""
@@ -184,6 +236,10 @@ def create_chart():
     data = request.json.get('data')
     title = request.json.get('title')
     
+    # Reject IDs that collide with built-in defaults to prevent Redis corruption
+    if id in get_default_charts():
+        return jsonify({'error': 'chart id conflicts with a default chart'}), 400
+
     # Store the chart definition
     active_charts_copy = get_stored_charts() # Get charts from Redis
     active_charts_copy[id] = {
@@ -240,14 +296,26 @@ def modify_chart(id):
 # delete chart
 @chart.route('/charts/<id>', methods=['DELETE']) # Ensure plural 'charts' for consistency
 def delete_chart(id):
-    active_charts_copy = get_stored_charts() # Get charts from Redis
-    if id in active_charts_copy:
-        del active_charts_copy[id]
-        # Store the updated charts back to Redis
-        store_charts(active_charts_copy)
-        return jsonify({ 'message': 'chart successfully deleted' }), 200
-    
-    return jsonify({ 'error': 'no such chart exists' }), 404 # Use 404
+    active_charts_copy = get_stored_charts()
+    if id not in active_charts_copy:
+        return jsonify({ 'error': 'no such chart exists' }), 404
+
+    # Delete from DB first — if this fails, we haven't touched Redis yet
+    try:
+        from app import db
+        from models import SavedChart
+        user_id = session.get('user_id', 'anonymous')
+        SavedChart.query.filter_by(id=id, user_id=user_id).delete()
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting chart from DB: {e}")
+        return jsonify({'error': 'Failed to delete chart'}), 500
+
+    del active_charts_copy[id]
+    store_charts(active_charts_copy)
+
+    return jsonify({ 'message': 'chart successfully deleted' }), 200
 
 # Brain location click endpoint
 @chart.route('/brain-clicks', methods=['POST'])
