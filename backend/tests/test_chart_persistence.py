@@ -93,6 +93,10 @@ def test_charts_are_scoped_per_user(app, fake_redis):
     chart_id = str(uuid.uuid4())
     client_a.post("/api/charts", json=_line_chart_payload(chart_id))
 
+    # User A still sees their own chart (the write was scoped to A, not dropped).
+    a_data = client_a.get("/api/charts").get_json()
+    assert chart_id in a_data
+
     # User B must not see user A's chart (B falls back to defaults).
     b_data = client_b.get("/api/charts").get_json()
     assert chart_id not in b_data
