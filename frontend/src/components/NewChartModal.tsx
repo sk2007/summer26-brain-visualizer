@@ -30,17 +30,6 @@ const chartTypes = [
   { id: 'bubble_chart', name: 'Bubble Chart' }
 ];
 
-// For series data in charts
-interface SeriesData {
-  name: string;
-  data: {
-    x: (string | number)[];
-    y: (string | number)[];
-    size: (string | number)[];
-    [key: string]: any; // Allow additional properties like x_raw, y_raw, etc.
-  };
-}
-
 export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewChartModalProps) {
   const [filters, setFilters] = useState<FilterItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('');
@@ -50,20 +39,12 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
     xaxis_title: '',
     yaxis_title: ''
   });
-  
-  // For series data in charts
-  const [seriesData, setSeriesData] = useState<SeriesData[]>([{
-    name: 'Series 1',
-    data: { 
-      x: [], 
-      y: [], 
-      size: [],
-      x_raw: '',
-      y_raw: '',
-      size_raw: ''
-    }
-  }]);
-  
+
+  const [fieldDefs, setFieldDefs] = useState<{ key: string; label: string; type: string }[]>([]);
+  const [selectedXField, setSelectedXField] = useState<string>('');
+  const [selectedYField, setSelectedYField] = useState<string>('');
+  const [isFetchingData, setIsFetchingData] = useState(false);
+
   // Fetch filters on component mount
   useEffect(() => {
     if (isOpen) {
@@ -87,7 +68,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
           filterItems.push(curFilter);
         });
         setFilters(filterItems);
-        
+
         // Set default selected filter to the active one
         const activeFilter = filterItems.find(f => f.active);
         if (activeFilter) {
@@ -99,20 +80,16 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
       });
     }
   }, [isOpen]);
-  
-  // Reset chart form when chart type changes
+
   useEffect(() => {
-    if (selectedChartType) {
-      // Reset series data based on chart type
-      const initialData = {
-        name: 'Series 1',
-        data: { x: [], y: [], size: [], x_raw: '', y_raw: '', size_raw: '' }
-      };
-      
-      setSeriesData([initialData]);
+    if (isOpen) {
+      fetch('/api/chart-fields')
+        .then((r) => r.json())
+        .then((data) => setFieldDefs(data.fields || []))
+        .catch((e) => console.error('Error fetching chart fields:', e));
     }
-  }, [selectedChartType]);
-  
+  }, [isOpen]);
+
   // Handle form input changes
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -121,47 +98,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
       [name]: value
     }));
   };
-  
-  // Handle series data changes
-  const handleSeriesChange = (index: number, field: string, value: string) => {
-    const updatedSeries = [...seriesData];
-    if (field === 'name') {
-      updatedSeries[index].name = value;
-    } else if (field === 'x' || field === 'y' || field === 'size') {
-      // Store the raw input value to enable proper editing
-      const rawInputValue = value;
-      
-      // Only parse comma-separated values when we need to update the actual data
-      if (!rawInputValue.trim()) {
-        updatedSeries[index].data[field] = [];
-      } else {
-        updatedSeries[index].data[field] = rawInputValue.split(',')
-          .map((item: string) => item.trim())
-          .filter((item: string) => item !== '')
-          .map((item: string) => isNaN(Number(item)) ? item : Number(item));
-      }
-      
-      // Store the raw input in a separate property for easier editing
-      updatedSeries[index].data[`${field}_raw`] = rawInputValue;
-    }
-    setSeriesData(updatedSeries);
-  };
-  
-  // Add a new series
-  const addSeries = () => {
-    setSeriesData([...seriesData, {
-      name: `Series ${seriesData.length + 1}`,
-      data: { x: [], y: [], size: [], x_raw: '', y_raw: '', size_raw: '' }
-    }]);
-  };
-  
-  // Remove a series
-  const removeSeries = (index: number) => {
-    const updated = [...seriesData];
-    updated.splice(index, 1);
-    setSeriesData(updated);
-  };
-  
+
   // Reset the form
   const resetForm = () => {
     setSelectedChartType('');
@@ -170,77 +107,73 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
       xaxis_title: '',
       yaxis_title: ''
     });
-    setSeriesData([{
-      name: 'Series 1',
-      data: { x: [], y: [], size: [], x_raw: '', y_raw: '', size_raw: '' }
-    }]);
+    setSelectedXField('');
+    setSelectedYField('');
+    setIsFetchingData(false);
   };
-  
+
   // Handle chart creation
-  const createChart = () => {
-    // Format the data for the API
-    const chartId = crypto.randomUUID();
-    const chartData = {
-      id: chartId,
-      type: selectedChartType,
-      title: chartSettings.title,
-      data: {
-        xaxis_title: chartSettings.xaxis_title,
-        yaxis_title: chartSettings.yaxis_title,
-        series: seriesData.map(series => {
-          const seriesObj: any = {
-            name: series.name,
-            trace: {}
-          };
-          
-          // Add x and y data
-          if (series.data.x.length > 0) {
-            seriesObj.trace.x = series.data.x;
-          }
-          
-          if (series.data.y.length > 0) {
-            seriesObj.trace.y = series.data.y;
-          }
-          
-          // Add size for bubble charts
-          if (selectedChartType === 'bubble_chart' && series.data.size.length > 0) {
-            seriesObj.trace.size = series.data.size;
-          }
-          
-          return seriesObj;
-        })
+  const createChart = async () => {
+    if (!selectedChartType || !selectedXField || !selectedYField) return;
+    setIsFetchingData(true);
+    try {
+      // 1. Fetch field data from the backend for the active filter
+      const dataRes = await fetch('/api/chart-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          filter_id: selectedFilter || 'default_id',
+          x_field: selectedXField,
+          y_field: selectedYField,
+        }),
+      });
+      if (!dataRes.ok) {
+        console.error('Failed to fetch chart data');
+        return;
       }
-    };
-    
-    // Submit to API
-    fetch(`${baseURL}/api/charts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(chartData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.text().then(text => {
-          throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
-        });
+      const { x, y } = await dataRes.json();
+
+      // 2. Build chart payload using the resolved data
+      const chartId = crypto.randomUUID();
+      const xLabel = fieldDefs.find((f) => f.key === selectedXField)?.label || selectedXField;
+      const yLabel = fieldDefs.find((f) => f.key === selectedYField)?.label || selectedYField;
+
+      const chartData = {
+        id: chartId,
+        type: selectedChartType,
+        title: chartSettings.title || `${xLabel} vs ${yLabel}`,
+        data: {
+          xaxis_title: chartSettings.xaxis_title || xLabel,
+          yaxis_title: chartSettings.yaxis_title || yLabel,
+          series: [
+            {
+              name: 'Data',
+              trace: { x, y },
+            },
+          ],
+        },
+      };
+
+      // 3. POST to charts endpoint (unchanged format)
+      const chartRes = await fetch(`${baseURL}/api/charts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(chartData),
+      });
+      if (!chartRes.ok) {
+        console.error('Failed to create chart');
+        return;
       }
-      return response.json();
-    })
-    .then(data => {
-      // Notify parent component
-      onChartCreated(chartId, data);
-      
-      // Close the modal and reset form
+      const config = await chartRes.json();
+      onChartCreated(chartId, config);
       closeModal();
-    })
-    .catch(error => {
-      console.error('Error creating chart:', error);
-    });
+    } catch (e) {
+      console.error('Error creating chart:', e);
+    } finally {
+      setIsFetchingData(false);
+    }
   };
-  
+
   // Handle modal close
   const closeModal = () => {
     resetForm();
@@ -248,7 +181,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
   };
 
   if (!isOpen) return null;
-  
+
   return (
     <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-[100]'>
       <div className='bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full overflow-y-auto max-h-[80vh]'>
@@ -261,7 +194,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
             Close
           </button>
         </div>
-        
+
         {/* Filter Selection */}
         <div className='mb-4'>
           <label className='block text-sm font-medium text-gray-700 mb-1'>Select Filter</label>
@@ -277,7 +210,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
             ))}
           </select>
         </div>
-        
+
         {/* Chart Type Selection */}
         <div className='mb-4'>
           <label className='block text-sm font-medium text-gray-700 mb-1'>Chart Type</label>
@@ -294,7 +227,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
             ))}
           </select>
         </div>
-        
+
         {/* Chart Settings (if chart type is selected) */}
         {selectedChartType && (
           <div>
@@ -309,7 +242,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
                 placeholder='Enter chart title'
               />
             </div>
-            
+
             <div className='mb-4'>
               <label className='block text-sm font-medium text-gray-700 mb-1'>X-Axis Title</label>
               <input
@@ -321,7 +254,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
                 placeholder='Enter x-axis title'
               />
             </div>
-            
+
             <div className='mb-4'>
               <label className='block text-sm font-medium text-gray-700 mb-1'>Y-Axis Title</label>
               <input
@@ -333,84 +266,38 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
                 placeholder='Enter y-axis title'
               />
             </div>
-            
-            {/* Series Data */}
+
+            {/* Field Selection */}
             <div className='mb-4'>
-              <div className='flex justify-between items-center mb-2'>
-                <label className='block text-sm font-medium text-gray-700'>Series Data</label>
-                <button
-                  onClick={addSeries}
-                  className='px-2 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-xs'
-                >
-                  Add Series
-                </button>
-              </div>
-              
-              {seriesData.map((series, index) => (
-                <div key={index} className='p-3 border border-gray-300 rounded-md mb-3'>
-                  <div className='flex justify-between items-center mb-2'>
-                    <h4 className='text-sm font-medium'>Series {index + 1}</h4>
-                    {seriesData.length > 1 && (
-                      <button
-                        onClick={() => removeSeries(index)}
-                        className='px-2 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors text-xs'
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className='mb-2'>
-                    <label className='block text-xs text-gray-600 mb-1'>Series Name</label>
-                    <input
-                      type='text'
-                      value={series.name}
-                      onChange={(e) => handleSeriesChange(index, 'name', e.target.value)}
-                      className='w-full border border-gray-300 rounded p-2 text-sm'
-                      placeholder='Series name'
-                    />
-                  </div>
-                  
-                  <div className='mb-2'>
-                    <label className='block text-xs text-gray-600 mb-1'>X Values (comma-separated)</label>
-                    <input
-                      type='text'
-                      value={series.data.x_raw || ''}
-                      onChange={(e) => handleSeriesChange(index, 'x', e.target.value)}
-                      className='w-full border border-gray-300 rounded p-2 text-sm'
-                      placeholder='e.g. 10, 20, 30 or Jan, Feb, Mar'
-                    />
-                  </div>
-                  
-                  <div className='mb-2'>
-                    <label className='block text-xs text-gray-600 mb-1'>Y Values (comma-separated)</label>
-                    <input
-                      type='text'
-                      value={series.data.y_raw || ''}
-                      onChange={(e) => handleSeriesChange(index, 'y', e.target.value)}
-                      className='w-full border border-gray-300 rounded p-2 text-sm'
-                      placeholder='e.g. 5, 15, 25'
-                    />
-                  </div>
-                  
-                  {selectedChartType === 'bubble_chart' && (
-                    <div className='mb-2'>
-                      <label className='block text-xs text-gray-600 mb-1'>Size Values (comma-separated)</label>
-                      <input
-                        type='text'
-                        value={series.data.size_raw || ''}
-                        onChange={(e) => handleSeriesChange(index, 'size', e.target.value)}
-                        className='w-full border border-gray-300 rounded p-2 text-sm'
-                        placeholder='e.g. 20, 40, 60'
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+              <label className='block text-sm font-medium text-gray-700 mb-1'>X Axis Field</label>
+              <select
+                value={selectedXField}
+                onChange={(e) => setSelectedXField(e.target.value)}
+                className='w-full border border-gray-300 rounded p-2'
+              >
+                <option value="">Select a field…</option>
+                {fieldDefs.map((f) => (
+                  <option key={f.key} value={f.key}>{f.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className='mb-4'>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Y Axis Field</label>
+              <select
+                value={selectedYField}
+                onChange={(e) => setSelectedYField(e.target.value)}
+                className='w-full border border-gray-300 rounded p-2'
+              >
+                <option value="">Select a field…</option>
+                {fieldDefs.map((f) => (
+                  <option key={f.key} value={f.key}>{f.label}</option>
+                ))}
+              </select>
             </div>
           </div>
         )}
-        
+
         <div className='flex justify-end space-x-2 mt-4'>
           <button
             onClick={closeModal}
@@ -420,17 +307,23 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
           </button>
           <button
             onClick={createChart}
-            disabled={!selectedChartType || seriesData.length === 0}
-            className={`px-4 py-2 bg-[#2774AE] text-white rounded-md transition-colors text-sm ${
-              !selectedChartType || seriesData.length === 0 
-                ? 'opacity-50 cursor-not-allowed' 
+            disabled={!selectedChartType || !selectedXField || !selectedYField || isFetchingData}
+            className={`px-4 py-2 bg-[#2774AE] text-white rounded-md transition-colors text-sm flex items-center gap-2 ${
+              !selectedChartType || !selectedXField || !selectedYField || isFetchingData
+                ? 'opacity-50 cursor-not-allowed'
                 : 'hover:bg-blue-700'
             }`}
           >
-            Create Chart
+            {isFetchingData && (
+              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+            )}
+            {isFetchingData ? 'Loading data…' : 'Create Chart'}
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}
