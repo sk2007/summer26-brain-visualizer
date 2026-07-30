@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
-from models import Patients, TumorMask, DoseMask, MRIMask, NiftiData
+from models import Patients, TumorMask, DoseMask, NiftiData
 from app import db
-from sqlalchemy import func, extract
 import datetime
 
 chart_fields_bp = Blueprint('chart_fields', __name__, url_prefix='/api')
@@ -101,32 +100,54 @@ def _get_patient_ids_for_filter(filter_id):
     if demo.get('origin_cancer'):
         q = q.filter(Patients.origin_cancer.in_(demo['origin_cancer']))
     # age_range, height_range, weight_range are stored as FilterOption {label, min, max} lists
+    # Each range field uses OR semantics: multiple selected ranges are unioned, not intersected.
+    age_range = demo.get('age_range', [])
+    if age_range:
+        age_filters = []
+        current_year = datetime.date.today().year
+        for opt in age_range:
+            if isinstance(opt, dict):
+                min_age = opt.get('min', 0)
+                max_age = opt.get('max', 150)
+                max_birth_year = current_year - min_age
+                min_birth_year = current_year - max_age
+                age_filters.append(
+                    db.extract('year', Patients.dob).between(min_birth_year, max_birth_year)
+                )
+        if age_filters:
+            q = q.filter(db.or_(*age_filters))
+
     for field_name, db_col in [
-        ('age_range', None),  # handled separately via dob — skipped for now
         ('height_range', Patients.height_cm),
         ('weight_range', Patients.weight_kg),
         ('tumor_count_range', Patients.tumor_count),
     ]:
         opts = demo.get(field_name, [])
-        if opts and field_name != 'age_range':
+        if opts:
+            field_filters = []
             for opt in opts:
                 if isinstance(opt, dict):
-                    if opt.get('min') is not None:
-                        q = q.filter(db_col >= opt['min'])
-                    if opt.get('max') is not None:
-                        q = q.filter(db_col <= opt['max'])
+                    field_filters.append(
+                        db_col.between(opt.get('min', 0), opt.get('max', 999999))
+                    )
+            if field_filters:
+                q = q.filter(db.or_(*field_filters))
+
     clinical = criteria.get('clinical_data', {})
     for field_name, db_col in [
         ('systolic_bp_range', Patients.systolic_bp),
         ('diastolic_bp_range', Patients.diastolic_bp),
     ]:
         opts = clinical.get(field_name, [])
-        for opt in opts:
-            if isinstance(opt, dict):
-                if opt.get('min') is not None:
-                    q = q.filter(db_col >= opt['min'])
-                if opt.get('max') is not None:
-                    q = q.filter(db_col <= opt['max'])
+        if opts:
+            field_filters = []
+            for opt in opts:
+                if isinstance(opt, dict):
+                    field_filters.append(
+                        db_col.between(opt.get('min', 0), opt.get('max', 999999))
+                    )
+            if field_filters:
+                q = q.filter(db.or_(*field_filters))
     return [str(p.id) for p in q.with_entities(Patients.id).all()]
 
 
