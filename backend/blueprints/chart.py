@@ -296,10 +296,7 @@ def delete_chart(id):
     if id not in active_charts_copy:
         return jsonify({ 'error': 'no such chart exists' }), 404
 
-    del active_charts_copy[id]
-    store_charts(active_charts_copy)
-
-    # Also delete from DB (no-op if it was a default chart not in DB)
+    # Delete from DB first — if this fails, we haven't touched Redis yet
     try:
         from app import db
         from models import SavedChart
@@ -309,6 +306,10 @@ def delete_chart(id):
     except Exception as e:
         db.session.rollback()
         print(f"Error deleting chart from DB: {e}")
+        # Continue — Redis delete still happens even if DB fails
+
+    del active_charts_copy[id]
+    store_charts(active_charts_copy)
 
     return jsonify({ 'message': 'chart successfully deleted' }), 200
 
