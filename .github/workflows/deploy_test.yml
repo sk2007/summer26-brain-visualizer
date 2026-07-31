@@ -1,9 +1,12 @@
 name: Deploy to DigitalOcean Production
 
+# Manual-only: this deploy requires DigitalOcean droplet secrets
+# (DO_DEPLOY_HOST, DO_DEPLOY_PATH, DO_SSH_PRIVATE_KEY, PROD_SECRET_KEY)
+# that are not currently configured. It was auto-running on every push to
+# main and failing at the rsync step. Re-enable the push trigger once the
+# secrets are set.
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
