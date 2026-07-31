@@ -82,6 +82,28 @@ def test_create_with_default_id_is_rejected(client, fake_redis):
     assert set(get_data.keys()) == {"1", "2", "3", "4", "5", "6"}
 
 
+def test_create_with_null_id_is_rejected(client, fake_redis):
+    resp = client.post("/api/charts", json={
+        "id": None,
+        "type": "line_chart",
+        "title": "x",
+        "data": {"xaxis_title": "t", "yaxis_title": "v", "series": []},
+    })
+    assert resp.status_code == 400
+    # Cache not corrupted: defaults still returned.
+    get_data = client.get("/api/charts").get_json()
+    assert set(get_data.keys()) == {"1", "2", "3", "4", "5", "6"}
+
+
+def test_create_with_missing_id_is_rejected(client, fake_redis):
+    resp = client.post("/api/charts", json={
+        "type": "line_chart",
+        "title": "x",
+        "data": {"xaxis_title": "t", "yaxis_title": "v", "series": []},
+    })
+    assert resp.status_code == 400
+
+
 def test_charts_are_scoped_per_user(app, fake_redis):
     from tests.conftest import set_session_user
 

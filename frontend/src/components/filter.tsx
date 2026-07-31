@@ -108,6 +108,7 @@ export default function Filter(props: FilterProps) {
   const [editFilterName, setEditFilterName] = useState('');
   const [editFilterCriteria, setEditFilterCriteria] = useState<FilterCriteria>({});
   const [niftiWarningFilterId, setNiftiWarningFilterId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Fetch filter options from backend
   useEffect(() => {
@@ -157,11 +158,14 @@ export default function Filter(props: FilterProps) {
         
         if (response.ok) {
           setFilters(prev => prev.filter((_, i) => i !== absoluteIndex));
+          setDeleteError(null);
         } else {
           console.error('Failed to delete filter');
+          setDeleteError('Failed to delete filter. Please try again.');
         }
       } catch (error) {
         console.error('Error deleting filter:', error);
+        setDeleteError('Failed to delete filter. Please try again.');
       }
     }
   };
@@ -378,6 +382,11 @@ export default function Filter(props: FilterProps) {
             >
               New Filter
             </button>
+            {deleteError && (
+              <div className='mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700'>
+                {deleteError}
+              </div>
+            )}
 
             {/* Loading state */}
             {loading ? (

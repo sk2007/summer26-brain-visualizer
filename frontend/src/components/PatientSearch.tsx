@@ -65,7 +65,8 @@ export default function PatientSearch(props: PatientSearchProps) {
   const [selectedPatient, setSelectedPatient] = useState<PatientSearchResult | null>(null);
   const [patientOverview, setPatientOverview] = useState<PatientOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(false);
-  
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   // Placeholder data for demonstration - replace with actual API calls later
   const [mriTimeline, setMriTimeline] = useState<MRITimelineItem[]>([]);
   const [tumorList, setTumorList] = useState<TumorItem[]>([]);
@@ -121,9 +122,11 @@ export default function PatientSearch(props: PatientSearchProps) {
         
         const data = await response.json();
         setSearchResults(data.results || []);
+        setFetchError(null);
       } catch (error) {
         console.error('Error searching patients:', error);
         setSearchResults([]);
+        setFetchError('Search failed. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -137,7 +140,8 @@ export default function PatientSearch(props: PatientSearchProps) {
   const handlePatientSelect = async (patient: PatientSearchResult) => {
     setSelectedPatient(patient);
     setIsLoadingOverview(true);
-    
+    setFetchError(null);
+
     try {
       // Fetch patient overview
       const overviewResponse = await fetch(`/api/patients/${patient.id}/overview`);
@@ -182,6 +186,7 @@ export default function PatientSearch(props: PatientSearchProps) {
       setMriTimeline([]);
       setTumorList([]);
       setTreatmentList([]);
+      setFetchError('Failed to load patient data. Please try again.');
     } finally {
       setIsLoadingOverview(false);
     }
@@ -352,6 +357,11 @@ export default function PatientSearch(props: PatientSearchProps) {
 
         {/* Content */}
         <div className='flex-1 overflow-y-auto p-3 max-h-[calc(100vh-3.5rem)]'>
+          {fetchError && (
+            <div className='mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700'>
+              {fetchError}
+            </div>
+          )}
           {!selectedPatient ? (
             // Search View
             <>

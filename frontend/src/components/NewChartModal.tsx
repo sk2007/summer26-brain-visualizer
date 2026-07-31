@@ -163,6 +163,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
       // 3. POST to charts endpoint (unchanged format)
       const chartRes = await fetch(`${baseURL}/api/charts`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(chartData),
       });

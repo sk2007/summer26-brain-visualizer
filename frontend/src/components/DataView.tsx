@@ -26,6 +26,7 @@ export default function DataView(props: DataProps) {
   const [newChartModal, setNewChartModal] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   // Resizable functionality
   const { width, isResizing, ResizeHandle } = useResizable({
@@ -53,7 +54,8 @@ export default function DataView(props: DataProps) {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
-      }
+      },
+      credentials: 'include'
     })
     .then(response => {
         if (!response.ok) {
@@ -65,10 +67,12 @@ export default function DataView(props: DataProps) {
     })
     .then((data: Record<string, PlotlyConfig>) => {
       setActiveChartConfigs(data);
+      setLoadError(null);
     })
     .catch(err => {
       console.error('Error fetching chart configurations:', err);
       setActiveChartConfigs({});
+      setLoadError('Failed to load charts. Please try again.');
     });
   }, []);
   
@@ -87,6 +91,7 @@ export default function DataView(props: DataProps) {
       const response = await fetch(`/api/charts/${chartId}`, {
         method: 'DELETE',
         headers: { 'Accept': 'application/json' },
+        credentials: 'include',
       });
       if (!response.ok) {
         console.error('Failed to delete chart:', chartId, response.status);
@@ -177,6 +182,11 @@ export default function DataView(props: DataProps) {
             >
               New Chart
             </button>
+            {loadError && (
+              <div className='mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700'>
+                {loadError}
+              </div>
+            )}
 
             {/* Charts Content with constrained heights */}
             {Object.keys(activeChartConfigs).length > 0 ? (
