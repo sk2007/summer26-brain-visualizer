@@ -1,7 +1,9 @@
 # Default Charts + Saved Charts Merge — Design (PROPOSAL)
 
-**Status:** Proposal — one product decision to confirm before planning.
+**Status:** DECIDED (Option 1 — always-present defaults) — plannable.
 **Date:** 2026-07-31
+**Decision (2026-07-31):** Option 1 chosen — the six defaults are always visible
+alongside a user's saved charts and are not deletable.
 
 ## Goal
 
@@ -63,11 +65,11 @@ Overlaying defaults at read time (rather than baking them into the stored set)
 keeps the stored data clean (user charts only) and makes the defaults trivially
 updatable.
 
-## Open Decision (confirm before planning)
+## Decision (resolved)
 
-- **Option 1 vs Option 2.** The rest of the design assumes Option 1; if Option 2
-  is chosen the work is much smaller (just make the cold-start fallback
-  consistent and document that saving hides defaults intentionally).
+**Option 1 (always-present defaults) was chosen** on 2026-07-31. The six defaults
+are always visible alongside a user's saved charts and are read-only /
+non-deletable. Option 2 is not being pursued. The design below is final.
 
 ## Testing
 
