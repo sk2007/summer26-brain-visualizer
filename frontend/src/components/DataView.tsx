@@ -27,6 +27,7 @@ export default function DataView(props: DataProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
   // Resizable functionality
   const { width, isResizing, ResizeHandle } = useResizable({
@@ -96,6 +97,7 @@ export default function DataView(props: DataProps) {
       if (!response.ok) {
         console.error('Failed to delete chart:', chartId, response.status);
         setDeletingIds((prev) => { const s = new Set(prev); s.delete(chartId); return s; });
+        setDeleteError('Failed to delete chart. Please try again.');
         return;
       }
       setActiveChartConfigs((prev) => {
@@ -103,9 +105,11 @@ export default function DataView(props: DataProps) {
         delete updated[chartId];
         return updated;
       });
+      setDeleteError(null);
     } catch (err) {
       console.error('Error deleting chart:', err);
       setDeletingIds((prev) => { const s = new Set(prev); s.delete(chartId); return s; });
+      setDeleteError('Failed to delete chart. Please try again.');
     }
   };
 
@@ -185,6 +189,11 @@ export default function DataView(props: DataProps) {
             {loadError && (
               <div className='mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700'>
                 {loadError}
+              </div>
+            )}
+            {deleteError && (
+              <div className='mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700'>
+                {deleteError}
               </div>
             )}
 
