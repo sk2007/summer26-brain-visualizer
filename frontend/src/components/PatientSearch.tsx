@@ -109,6 +109,7 @@ export default function PatientSearch(props: PatientSearchProps) {
     const searchPatients = async () => {
       if (!searchTerm.trim()) {
         setSearchResults([]);
+        setFetchError(null);
         return;
       }
 
