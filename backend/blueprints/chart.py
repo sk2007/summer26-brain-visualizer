@@ -3,6 +3,11 @@ from .chart_creators import chart_creation_map
 
 chart = Blueprint('chart', __name__, url_prefix='/api')
 
+# In-memory store for brain-surface clicks from the pycortex viewer.
+# Placeholder: process-local and not durable — per-user/durable storage is
+# deferred to the future click→visualization feature.
+brain_clicks = []
+
 def _user_charts_key():
     user_id = session.get('user_id', 'anonymous')
     return f'stored_charts:{user_id}'
@@ -194,10 +199,6 @@ def get_default_charts():
         }
     }
 
-def get_brain_clicks():
-    """Create a fresh copy of brain clicks for each request."""
-    return []
-
 # access all active charts
 @chart.route('/charts', methods=['GET'])
 def get_charts():
@@ -236,6 +237,10 @@ def create_chart():
     data = request.json.get('data')
     title = request.json.get('title')
     
+    # Reject a missing/empty id (would write a None key into Redis)
+    if not id:
+        return jsonify({'error': 'chart id is required'}), 400
+
     # Reject IDs that collide with built-in defaults to prevent Redis corruption
     if id in get_default_charts():
         return jsonify({'error': 'chart id conflicts with a default chart'}), 400
