@@ -13,8 +13,8 @@ def _user_charts_key():
     return f'stored_charts:{user_id}'
 
 
-def get_stored_charts():
-    """Load charts for the current user: Redis first, then DB, then defaults."""
+def get_user_charts():
+    """The current user's SAVED charts only (no defaults): Redis, then DB, then {}."""
     from app import redis_cache
     from models import SavedChart
     import json
@@ -22,27 +22,26 @@ def get_stored_charts():
     charts_key = _user_charts_key()
     user_id = session.get('user_id', 'anonymous')
 
-    # 1. Try Redis
+    # 1. Try Redis (holds user charts only)
     raw = redis_cache.get_path(charts_key)
     if raw:
         if isinstance(raw, bytes):
             raw = raw.decode('utf-8')
         return json.loads(raw)
 
-    # 2. Redis miss: load from DB
+    # 2. Redis miss: load user charts from DB and warm the cache
     db_charts = SavedChart.query.filter_by(user_id=user_id).all()
-    if db_charts:
-        charts_dict = {
-            c.id: {'type': c.chart_type, 'title': c.title, 'data': c.data}
-            for c in db_charts
-        }
-        store_charts(charts_dict)          # warm the cache
-        return charts_dict
+    charts_dict = {
+        c.id: {'type': c.chart_type, 'title': c.title, 'data': c.data}
+        for c in db_charts
+    }
+    store_charts(charts_dict)              # warm cache (user-only; may be {})
+    return charts_dict
 
-    # 3. No saved charts: return defaults (do NOT persist defaults to DB)
-    defaults = get_default_charts()
-    store_charts(defaults)
-    return defaults
+
+def get_stored_charts():
+    """Built-in defaults are always overlaid with the user's saved charts."""
+    return {**get_default_charts(), **get_user_charts()}
 
 def store_charts(charts_dict):
     """Write charts to Redis (always) and sync to DB (skip default IDs)."""
@@ -53,12 +52,14 @@ def store_charts(charts_dict):
     charts_key = _user_charts_key()
     user_id = session.get('user_id', 'anonymous')
 
-    # Always update Redis
-    redis_cache.set_path(charts_key, json.dumps(charts_dict))
-
-    # Skip DB writes for the built-in default IDs ("1"–"6")
+    # Persist user charts only; defaults are overlaid at read time and never stored.
     default_ids = set(get_default_charts().keys())
-    user_chart_ids = set(charts_dict.keys()) - default_ids
+    user_charts = {k: v for k, v in charts_dict.items() if k not in default_ids}
+
+    # Always update Redis (user-only view)
+    redis_cache.set_path(charts_key, json.dumps(user_charts))
+
+    user_chart_ids = set(user_charts.keys())
     if not user_chart_ids:
         return
 
@@ -71,7 +72,7 @@ def store_charts(charts_dict):
             ).all()
         }
         for chart_id in user_chart_ids:
-            info = charts_dict[chart_id]
+            info = user_charts[chart_id]
             if chart_id in existing_ids:
                 SavedChart.query.filter_by(id=chart_id, user_id=user_id).update({
                     'chart_type': info['type'],
@@ -245,8 +246,8 @@ def create_chart():
     if id in get_default_charts():
         return jsonify({'error': 'chart id conflicts with a default chart'}), 400
 
-    # Store the chart definition
-    active_charts_copy = get_stored_charts() # Get charts from Redis
+    # Store the chart definition (operate on the user's own charts)
+    active_charts_copy = get_user_charts()
     active_charts_copy[id] = {
         'type': type,
         'title': title,
@@ -268,7 +269,11 @@ def modify_chart(id):
     data = request.json.get('data')
     title = request.json.get('title') # Also get title for modification
 
-    active_charts_copy = get_stored_charts() # Get charts from Redis
+    # Default charts are read-only baseline examples.
+    if id in get_default_charts():
+        return jsonify({ 'error': 'cannot modify a default chart' }), 400
+
+    active_charts_copy = get_user_charts()
     if id not in active_charts_copy:
         return jsonify({ 'error': 'invalid chart id' }), 404 # Use 404 for not found
     
@@ -301,7 +306,11 @@ def modify_chart(id):
 # delete chart
 @chart.route('/charts/<id>', methods=['DELETE']) # Ensure plural 'charts' for consistency
 def delete_chart(id):
-    active_charts_copy = get_stored_charts()
+    # Default charts cannot be deleted.
+    if id in get_default_charts():
+        return jsonify({ 'error': 'cannot delete a default chart' }), 400
+
+    active_charts_copy = get_user_charts()
     if id not in active_charts_copy:
         return jsonify({ 'error': 'no such chart exists' }), 404
 

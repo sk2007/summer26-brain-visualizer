@@ -123,3 +123,40 @@ def test_charts_are_scoped_per_user(app, fake_redis):
     b_data = client_b.get("/api/charts").get_json()
     assert chart_id not in b_data
     assert set(b_data.keys()) == {"1", "2", "3", "4", "5", "6"}
+
+
+def test_defaults_present_alongside_saved_chart(client, fake_redis):
+    import uuid
+    chart_id = str(uuid.uuid4())
+    client.post("/api/charts", json=_line_chart_payload(chart_id))
+
+    data = client.get("/api/charts").get_json()
+    # Defaults AND the user chart are both present.
+    assert set(data.keys()) == {"1", "2", "3", "4", "5", "6", chart_id}
+
+
+def test_delete_default_chart_is_rejected(client, fake_redis):
+    resp = client.delete("/api/charts/1")
+    assert resp.status_code == 400
+    data = client.get("/api/charts").get_json()
+    assert set(data.keys()) == {"1", "2", "3", "4", "5", "6"}
+
+
+def test_modify_default_chart_is_rejected(client, fake_redis):
+    resp = client.put("/api/charts/1", json={
+        "type": "line_chart",
+        "title": "hacked",
+        "data": {"xaxis_title": "t", "yaxis_title": "v", "series": []},
+    })
+    assert resp.status_code == 400
+
+
+def test_defaults_never_written_to_db_after_save(client, app, fake_redis):
+    import uuid
+    from models import SavedChart
+    chart_id = str(uuid.uuid4())
+    client.post("/api/charts", json=_line_chart_payload(chart_id))
+    # Only the user chart is persisted; no default IDs in the DB.
+    with app.app_context():
+        ids = {c.id for c in SavedChart.query.all()}
+    assert ids == {chart_id}
