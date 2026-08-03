@@ -117,7 +117,7 @@ export default function DataView(props: DataProps) {
 
   return props.dataShowing ? (
       <div
-        className={`fixed top-0 h-screen bg-white shadow-lg ${
+        className={`fixed top-0 h-screen bg-white dark:bg-gray-900 shadow-lg ${
           !isFullScreen ? '' : 'w-full'
         }`}
         style={{ 
@@ -133,21 +133,21 @@ export default function DataView(props: DataProps) {
         {/* Resize handle - only show when not in fullscreen */}
         {!isFullScreen && <ResizeHandle />}
 
-        <div className='bg-white h-full w-full overflow-hidden flex flex-col max-h-screen'>
+        <div className='bg-white dark:bg-gray-900 h-full w-full overflow-hidden flex flex-col max-h-screen'>
           {/* Header */}
           <div className='flex justify-between items-center p-3 border-b flex-shrink-0'>
             <h1 className='text-lg font-semibold'>Data Visualizations</h1>
             <div className='flex items-center space-x-1'>
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title={isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
               >
                 <Maximize2 className='w-4 h-4' />
               </button>
               <button
                 onClick={() => props.toggleData(false)}
-                className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title='Close'
               >
                 <X className='w-4 h-4' />
