@@ -6,6 +6,7 @@ import DataView from '@/components/DataView';
 import PatientSearch from '@/components/PatientSearch';
 import LeftSidebar from '@/components/LeftSidebar';
 import ThemeToggle from '@/components/ThemeToggle';
+import ScanInfoBox from '@/components/ScanInfoBox';
 import dynamic from 'next/dynamic';
 
 const DynamicFilter = dynamic(() => import('@/components/filter'), {
@@ -253,6 +254,15 @@ export default function Viewer() {
       <div className="fixed top-4 right-4 z-40">
         <ThemeToggle />
       </div>
+
+      {/* Scan info box */}
+      <ScanInfoBox
+        activeFilterId={activeFilterId}
+        activeMaskType={activeMaskType}
+        activeViewType={activeViewType}
+        selectedPatient={selectedPatient}
+        sidebarWidth={sidebarWidth}
+      />
     </div>
   );
 }
