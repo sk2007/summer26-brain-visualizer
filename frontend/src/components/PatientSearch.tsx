@@ -306,7 +306,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
   return props.patientSearchShowing ? (
     <div
-      className={`fixed top-0 h-screen bg-white shadow-lg ${
+      className={`fixed top-0 h-screen bg-white dark:bg-gray-900 shadow-lg ${
         !isFullScreen ? '' : 'w-full'
       }`}
       style={{ 
@@ -321,7 +321,7 @@ export default function PatientSearch(props: PatientSearchProps) {
       {/* Resize handle - only show when not in fullscreen */}
       {!isFullScreen && <ResizeHandle />}
 
-      <div className='bg-white h-full w-full overflow-hidden flex flex-col max-h-screen'>
+      <div className='bg-white dark:bg-gray-900 h-full w-full overflow-hidden flex flex-col max-h-screen'>
         {/* Header */}
         <div className='flex justify-between items-center p-3 border-b flex-shrink-0'>
           <div className='flex items-center space-x-2'>
