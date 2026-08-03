@@ -141,9 +141,9 @@ export default function BrainViewerModal({
                   </div>
                 </div>
               ) : metaError ? (
-                <p className="text-xs text-gray-500">Not available</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Not available</p>
               ) : (
-                <p className="text-xs text-gray-500 animate-pulse">Loading…</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 animate-pulse">Loading…</p>
               )}
             </div>
           </div>

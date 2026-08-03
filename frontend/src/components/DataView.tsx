@@ -211,7 +211,7 @@ export default function DataView(props: DataProps) {
                     return (
                       <div
                         key={chartId}
-                        className={`group relative border border-gray-200 rounded-lg overflow-hidden ${
+                        className={`group relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden ${
                           (isGridLayout && isFullScreen)
                             ? 'h-[400px]'
                             : isFullScreen
