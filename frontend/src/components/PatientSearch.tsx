@@ -55,6 +55,7 @@ interface PatientSearchProps {
   onWidthChange?: (width: number) => void;
   onFullScreenChange?: (isFullScreen: boolean) => void;
   sidebarWidth?: number;
+  onPatientSelect?: (patient: { id: string; name: string } | null) => void;
 }
 
 export default function PatientSearch(props: PatientSearchProps) {
@@ -140,6 +141,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
   const handlePatientSelect = async (patient: PatientSearchResult) => {
     setSelectedPatient(patient);
+    props.onPatientSelect?.({ id: patient.id, name: patient.display_name });
     setIsLoadingOverview(true);
     setFetchError(null);
 
@@ -195,6 +197,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
   const handleBackToSearch = () => {
     setSelectedPatient(null);
+    props.onPatientSelect?.(null);
     setPatientOverview(null);
     setMriTimeline([]);
     setTumorList([]);

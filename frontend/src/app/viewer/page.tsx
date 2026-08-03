@@ -35,7 +35,8 @@ export default function Viewer() {
   const [isClient, setIsClient] = useState(false);
   const [iframeTranslateX, setIframeTranslateX] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
+  const [selectedPatient, setSelectedPatient] = useState<{ id: string; name: string } | null>(null);
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -243,6 +244,7 @@ export default function Viewer() {
             onWidthChange={setPatientSearchWidth}
             onFullScreenChange={setIsPatientSearchFullScreen}
             sidebarWidth={sidebarWidth}
+            onPatientSelect={setSelectedPatient}
           />
         )}
       </div>
