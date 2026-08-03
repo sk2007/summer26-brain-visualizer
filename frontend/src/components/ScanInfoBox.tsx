@@ -72,7 +72,7 @@ export default function ScanInfoBox({
     const controller = new AbortController();
     setFilterLoading(true);
     setFilterError(false);
-    fetch(`/api/filters/stats/${activeFilterId}?maskType=${activeMaskType}`, {
+    fetch(`/api/filter-statistics/${activeFilterId}?maskType=${activeMaskType}`, {
       signal: controller.signal,
       credentials: 'include',
     })
@@ -120,7 +120,7 @@ export default function ScanInfoBox({
         setPatientLoading(false);
       });
     return () => controller.abort();
-  }, [selectedPatient]);
+  }, [selectedPatient?.id]);
 
   const leftOffset = sidebarWidth + 16;
 
