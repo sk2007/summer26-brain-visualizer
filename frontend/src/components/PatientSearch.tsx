@@ -408,12 +408,12 @@ export default function PatientSearch(props: PatientSearchProps) {
                         <div className='flex items-center space-x-3'>
                           <User className='w-5 h-5 text-[#2774AE]' />
                           <div>
-                            <div className='font-medium text-gray-900'>{patient.display_name}</div>
+                            <div className='font-medium text-gray-900 dark:text-gray-100'>{patient.display_name}</div>
                             <div className='text-sm text-gray-500 dark:text-gray-400'>ID: {patient.id}</div>
                           </div>
                         </div>
                         <div className='text-right'>
-                          <div className='text-sm font-medium text-gray-900'>{patient.data_count}</div>
+                          <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{patient.data_count}</div>
                           <div className='text-xs text-gray-500 dark:text-gray-400'>data points</div>
                         </div>
                       </div>
@@ -449,7 +449,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
                   {/* Demographics */}
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-semibold text-gray-900'>Demographics</h3>
+                    <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>Demographics</h3>
                     <div className='grid grid-cols-2 gap-4'>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
@@ -489,7 +489,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
                   {/* Medical Information */}
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-semibold text-gray-900'>Medical Information</h3>
+                    <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>Medical Information</h3>
                     <div className='space-y-3'>
                       <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Origin Cancer</span>
@@ -510,7 +510,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
                   {/* Diagnosis Dates */}
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-semibold text-gray-900'>Diagnosis Timeline</h3>
+                    <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>Diagnosis Timeline</h3>
                     <div className='space-y-3'>
                       <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <div className='flex items-center space-x-2'>
@@ -536,7 +536,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                   {/* MRI Timeline */}
                   <div className='space-y-4'>
                     <div className="flex justify-between items-center">
-                      <h3 className='text-lg font-semibold text-gray-900'>MRI Timeline</h3>
+                      <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>MRI Timeline</h3>
                       <button
                         onClick={() => setPlaybackOpen(true)}
                         disabled={mriTimeline.length === 0}
@@ -553,7 +553,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                             <div className='flex items-center space-x-3'>
                               <Calendar className='w-4 h-4 text-[#2774AE]' />
                               <div>
-                                <div className='text-sm font-medium text-gray-900'>{formatDate(mri.date)}</div>
+                                <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{formatDate(mri.date)}</div>
                                 <div className='text-xs text-gray-500 dark:text-gray-400'>{mri.timepoint}</div>
                               </div>
                             </div>
@@ -577,7 +577,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                   {/* Tumor Summary */}
                   <div className='space-y-4'>
                     <div className="flex justify-between items-center">
-                      <h3 className='text-lg font-semibold text-gray-900'>Tumor Summary</h3>
+                      <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>Tumor Summary</h3>
                       <button
                         onClick={() => setTumorPlaybackOpen(true)}
                         disabled={tumorList.length === 0}
@@ -594,7 +594,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                             <div className='flex items-center space-x-3'>
                               <Brain className='w-4 h-4 text-green-600' />
                               <div>
-                                <div className='text-sm font-medium text-gray-900'>{tumor.location}</div>
+                                <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{tumor.location}</div>
                                 <div className='text-xs text-gray-500 dark:text-gray-400'>{tumor.volume_mm3} mm³</div>
                               </div>
                             </div>
@@ -618,7 +618,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                   {/* Treatment Summary */}
                   <div className='space-y-4'>
                     <div className="flex justify-between items-center">
-                      <h3 className='text-lg font-semibold text-gray-900'>Treatment Summary</h3>
+                      <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>Treatment Summary</h3>
                       <button
                         onClick={() => setTreatmentPlaybackOpen(true)}
                         disabled={treatmentList.length === 0}
@@ -635,7 +635,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                             <div className='flex items-center space-x-3'>
                               <Pill className='w-4 h-4 text-purple-600' />
                               <div>
-                                <div className='text-sm font-medium text-gray-900'>{treatment.type}</div>
+                                <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{treatment.type}</div>
                                 <div className='text-xs text-gray-500 dark:text-gray-400'>
                                   {treatment.dose && `${treatment.dose} Gy`}
                                   {treatment.volume_mm3 && ` • ${treatment.volume_mm3.toFixed(1)} mm³`}
