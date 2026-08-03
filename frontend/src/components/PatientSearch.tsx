@@ -328,7 +328,7 @@ export default function PatientSearch(props: PatientSearchProps) {
             {selectedPatient && (
               <button
                 onClick={handleBackToSearch}
-                className='p-1 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title='Back to search'
               >
                 <ArrowLeft className='w-4 h-4' />
@@ -341,14 +341,14 @@ export default function PatientSearch(props: PatientSearchProps) {
           <div className='flex items-center space-x-1'>
             <button
               onClick={() => setIsFullScreen(!isFullScreen)}
-              className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+              className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
               title={isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
               <Maximize2 className='w-4 h-4' />
             </button>
             <button
               onClick={() => props.togglePatientSearch(false)}
-              className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+              className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
               title='Close'
             >
               <X className='w-4 h-4' />
@@ -384,7 +384,7 @@ export default function PatientSearch(props: PatientSearchProps) {
               {isLoading && (
                 <div className='flex items-center justify-center py-8'>
                   <Loader2 className='w-6 h-6 text-[#2774AE] animate-spin' />
-                  <span className='ml-2 text-gray-600'>Searching patients...</span>
+                  <span className='ml-2 text-gray-600 dark:text-gray-400'>Searching patients...</span>
                 </div>
               )}
 
@@ -437,12 +437,12 @@ export default function PatientSearch(props: PatientSearchProps) {
               {isLoadingOverview ? (
                 <div className='flex items-center justify-center py-8'>
                   <Loader2 className='w-6 h-6 text-[#2774AE] animate-spin' />
-                  <span className='ml-2 text-gray-600'>Loading patient data...</span>
+                  <span className='ml-2 text-gray-600 dark:text-gray-400'>Loading patient data...</span>
                 </div>
               ) : patientOverview ? (
                 <>
                   {/* Patient ID */}
-                  <div className='bg-gray-50 p-4 rounded-lg'>
+                  <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
                     <div className='text-sm text-gray-500 dark:text-gray-400 mb-1'>Patient ID</div>
                     <div className='font-mono text-sm'>{patientOverview.id}</div>
                   </div>
@@ -456,28 +456,28 @@ export default function PatientSearch(props: PatientSearchProps) {
                           <User className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Sex</span>
                         </div>
-                        <div className='text-sm text-gray-600'>{patientOverview.sex}</div>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.sex}</div>
                       </div>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
                           <Ruler className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Height</span>
                         </div>
-                        <div className='text-sm text-gray-600'>{patientOverview.height_cm} cm</div>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.height_cm} cm</div>
                       </div>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
                           <Weight className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Weight</span>
                         </div>
-                        <div className='text-sm text-gray-600'>{patientOverview.weight_kg} kg</div>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.weight_kg} kg</div>
                       </div>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
                           <Activity className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>BMI</span>
                         </div>
-                        <div className='text-sm text-gray-600'>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>
                           {calculateBMI(patientOverview.height_cm, patientOverview.weight_kg)}
                           <span className='text-xs text-gray-500 dark:text-gray-400 ml-1'>
                             ({getBMICategory(parseFloat(calculateBMI(patientOverview.height_cm, patientOverview.weight_kg)))})
@@ -491,17 +491,17 @@ export default function PatientSearch(props: PatientSearchProps) {
                   <div className='space-y-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>Medical Information</h3>
                     <div className='space-y-3'>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Origin Cancer</span>
-                        <span className='text-sm text-gray-600'>{patientOverview.origin_cancer}</span>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.origin_cancer}</span>
                       </div>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Tumor Count</span>
-                        <span className='text-sm text-gray-600'>{patientOverview.tumor_count}</span>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.tumor_count}</span>
                       </div>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Blood Pressure</span>
-                        <span className='text-sm text-gray-600'>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>
                           {patientOverview.systolic_bp}/{patientOverview.diastolic_bp} mmHg
                         </span>
                       </div>
@@ -512,21 +512,21 @@ export default function PatientSearch(props: PatientSearchProps) {
                   <div className='space-y-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>Diagnosis Timeline</h3>
                     <div className='space-y-3'>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <div className='flex items-center space-x-2'>
                           <Calendar className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Original Diagnosis</span>
                         </div>
-                        <span className='text-sm text-gray-600'>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>
                           {formatDate(patientOverview.date_of_original_diagnosis)}
                         </span>
                       </div>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <div className='flex items-center space-x-2'>
                           <Calendar className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Metastatic Diagnosis</span>
                         </div>
-                        <span className='text-sm text-gray-600'>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>
                           {formatDate(patientOverview.date_of_metastatic_diagnosis)}
                         </span>
                       </div>
