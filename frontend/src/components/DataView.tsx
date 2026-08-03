@@ -7,6 +7,8 @@ import { useResizable } from '../hooks/useResizable';
 // Remove the baseURL since we're using the proxy
 // const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+const DEFAULT_CHART_IDS = new Set(['1', '2', '3', '4', '5', '6']);
+
 interface PlotlyConfig {
   data: any;
   layout: any;
@@ -115,7 +117,7 @@ export default function DataView(props: DataProps) {
 
   return props.dataShowing ? (
       <div
-        className={`fixed top-0 h-screen bg-white shadow-lg ${
+        className={`fixed top-0 h-screen bg-white dark:bg-gray-900 shadow-lg ${
           !isFullScreen ? '' : 'w-full'
         }`}
         style={{ 
@@ -131,21 +133,21 @@ export default function DataView(props: DataProps) {
         {/* Resize handle - only show when not in fullscreen */}
         {!isFullScreen && <ResizeHandle />}
 
-        <div className='bg-white h-full w-full overflow-hidden flex flex-col max-h-screen'>
+        <div className='bg-white dark:bg-gray-900 h-full w-full overflow-hidden flex flex-col max-h-screen'>
           {/* Header */}
           <div className='flex justify-between items-center p-3 border-b flex-shrink-0'>
             <h1 className='text-lg font-semibold'>Data Visualizations</h1>
             <div className='flex items-center space-x-1'>
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title={isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
               >
                 <Maximize2 className='w-4 h-4' />
               </button>
               <button
                 onClick={() => props.toggleData(false)}
-                className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title='Close'
               >
                 <X className='w-4 h-4' />
@@ -217,16 +219,18 @@ export default function DataView(props: DataProps) {
                               : 'h-[300px]'
                         }`}
                       >
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteChart(chartId)}
-                          disabled={deletingIds.has(chartId)}
-                          className="absolute top-2 right-2 z-10 p-1 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-red-100 hover:text-red-600 rounded-md transition-[opacity,colors] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Delete chart"
-                          aria-label="Delete chart"
-                        >
-                          <X className="w-3.5 h-3.5" aria-hidden="true" />
-                        </button>
+                        {!DEFAULT_CHART_IDS.has(chartId) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteChart(chartId)}
+                            disabled={deletingIds.has(chartId)}
+                            className="absolute top-2 right-2 z-10 p-1 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-red-100 hover:text-red-600 rounded-md transition-[opacity,colors] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete chart"
+                            aria-label="Delete chart"
+                          >
+                            <X className="w-3.5 h-3.5" aria-hidden="true" />
+                          </button>
+                        )}
                         <Chart plotlyConfig={config} />
                       </div>
                     );

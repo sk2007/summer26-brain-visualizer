@@ -5,6 +5,7 @@ import Filter from '@/components/filter';
 import DataView from '@/components/DataView';
 import PatientSearch from '@/components/PatientSearch';
 import LeftSidebar from '@/components/LeftSidebar';
+import ThemeToggle from '@/components/ThemeToggle';
 import dynamic from 'next/dynamic';
 
 const DynamicFilter = dynamic(() => import('@/components/filter'), {
@@ -245,6 +246,11 @@ export default function Viewer() {
           />
         )}
       </div>
+
+      {/* Dark mode toggle */}
+      <div className="fixed top-4 right-4 z-40">
+        <ThemeToggle />
+      </div>
     </div>
   );
-} 
+}

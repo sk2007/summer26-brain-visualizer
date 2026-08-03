@@ -205,13 +205,13 @@ export default function Filter(props: FilterProps) {
   ) => {
     return (
       <div key={categoryKey} className='mb-4'>
-        <h3 className='font-medium text-gray-800 mb-2 capitalize'>
+        <h3 className='font-medium text-gray-800 dark:text-gray-200 mb-2 capitalize'>
           {categoryKey.replace(/_/g, ' ')}
         </h3>
         
         {Object.entries(categoryData).map(([filterKey, filterData]) => (
           <div key={filterKey} className='mb-3 pl-2'>
-            <div className='font-medium text-gray-700 text-sm mb-1'>
+            <div className='font-medium text-gray-700 dark:text-gray-300 text-sm mb-1'>
               {filterKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </div>
             
@@ -333,7 +333,7 @@ export default function Filter(props: FilterProps) {
   
   return (
       <div
-        className={`fixed top-0 h-screen bg-white shadow-lg ${
+        className={`fixed top-0 h-screen bg-white dark:bg-gray-900 shadow-lg ${
           !isFullScreen ? '' : 'w-full'
         }`}
         style={{ 
@@ -349,21 +349,21 @@ export default function Filter(props: FilterProps) {
         {/* Resize handle - only show when not in fullscreen */}
         {!isFullScreen && <ResizeHandle />}
   
-        <div className='bg-white h-full w-full overflow-hidden'>
+        <div className='bg-white dark:bg-gray-900 h-full w-full overflow-hidden'>
           {/* Header */}
           <div className='flex justify-between items-center p-3 border-b'>
             <h1 className='text-lg font-semibold'>Filters</h1>
             <div className='flex items-center space-x-1'>
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title={isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
               >
                 <Maximize2 className='w-4 h-4' />
               </button>
               <button
                 onClick={() => props.toggleFilter(false)}
-                className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
               >
                 <X className='w-4 h-4' />
               </button>
@@ -395,23 +395,23 @@ export default function Filter(props: FilterProps) {
               </div>
             ) : (
               /* Filter List */
-              <div className='border border-gray-300 rounded-lg bg-gray-100 max-h-[75vh] overflow-y-auto'>
+              <div className='border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 max-h-[75vh] overflow-y-auto'>
                 {/* Optimized layout for dynamic width */}
                 <div className='divide-y divide-gray-200'>
                   {/* Header */}
-                  <div className='bg-gray-50 px-3 py-2'>
-                    <div className='grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <div className='bg-gray-50 dark:bg-gray-700 px-3 py-2'>
+                    <div className='grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                       <div className='col-span-2'>Active</div>
                       <div className='col-span-10'>Filter Name</div>
                     </div>
                   </div>
                   
                   {/* Filter rows */}
-                  <div className='bg-white divide-y divide-gray-200'>
+                  <div className='bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700'>
                     {filters.map((filter, index) => (
                       <div
                         key={filter.id}
-                        className={`cursor-pointer hover:bg-gray-50 px-3 py-3 ${filter.active ? 'bg-blue-50' : ''}`}
+                        className={`cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-3 ${filter.active ? 'bg-blue-50 dark:bg-blue-900/30' : ''}`}
                         onClick={() => handleRadioChange(index)}
                       >
                         {isFullScreen ? (
@@ -426,7 +426,7 @@ export default function Filter(props: FilterProps) {
                               />
                             </div>
                             <div className='col-span-8'>
-                              <div className="text-sm font-medium text-gray-900 truncate" title={filter.name}>
+                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={filter.name}>
                                 {filter.name}
                               </div>
                             </div>
@@ -438,7 +438,7 @@ export default function Filter(props: FilterProps) {
                                   setEditFilterName(filter.name);
                                   setEditFilterCriteria(filter.criteria);
                                 }}
-                                className='px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors'
+                                className='px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors dark:text-gray-200'
                                 title="Edit filter"
                               >
                                 Edit
@@ -496,7 +496,7 @@ export default function Filter(props: FilterProps) {
                                 />
                               </div>
                               <div className='col-span-10'>
-                                <div className="text-sm font-medium text-gray-900 truncate" title={filter.name}>
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={filter.name}>
                                   {filter.name}
                                 </div>
                               </div>
@@ -511,7 +511,7 @@ export default function Filter(props: FilterProps) {
                                   setEditFilterName(filter.name);
                                   setEditFilterCriteria(filter.criteria);
                                 }}
-                                className={`${width > 20 ? 'flex-1 max-w-[80px]' : 'px-2'} py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors`}
+                                className={`${width > 20 ? 'flex-1 max-w-[80px]' : 'px-2'} py-1 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors dark:text-gray-200`}
                                 title="Edit filter"
                               >
                                 {width > 15 ? 'Edit' : 'E'}
@@ -568,15 +568,15 @@ export default function Filter(props: FilterProps) {
         {/* Modal Popup for Viewing a Filter's Criteria */}
         {modalFilter && (
           <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30' style={{ zIndex: 100 }}>
-            <div className='bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto'>
+            <div className='bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto'>
               <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-xl font-semibold text-gray-900'>{modalFilter.name}</h2>
+                <h2 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>{modalFilter.name}</h2>
                 <button
                   onClick={() => {
                     setModalFilter(null);
                     setModalStats(null);
                   }}
-                  className='text-gray-600 hover:text-gray-800 p-1'
+                  className='text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-1'
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -586,18 +586,18 @@ export default function Filter(props: FilterProps) {
               <div className='mb-6'>
                 <div className='flex items-center gap-2 mb-4'>
                   <BarChart3 className="w-5 h-5 text-[#2774AE]" />
-                  <h3 className='text-lg font-semibold text-gray-800'>Filter Impact</h3>
+                  <h3 className='text-lg font-semibold text-gray-800 dark:text-gray-200'>Filter Impact</h3>
                 </div>
 
                 {modalStatsLoading && (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-[#2774AE]" />
-                    <span className="ml-3 text-gray-600">Loading statistics...</span>
+                    <span className="ml-3 text-gray-600 dark:text-gray-400">Loading statistics...</span>
                   </div>
                 )}
 
                 {modalStats && !modalStatsLoading && (
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     {modalStats.error ? (
                       <div className="text-red-600 text-sm">
                         Error loading statistics: {modalStats.error}
@@ -643,8 +643,8 @@ export default function Filter(props: FilterProps) {
 
                           {/* Other Data Types */}
                           {props.activeMaskType !== 'tumor' && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg">
-                              <Brain className="w-6 h-6 text-gray-500" />
+                            <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                              <Brain className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                               <div>
                                 <div className="text-xl font-semibold text-gray-700">
                                   {modalStats.total_tumors?.toLocaleString() || '0'}
@@ -655,25 +655,25 @@ export default function Filter(props: FilterProps) {
                           )}
 
                           {props.activeMaskType !== 'mri' && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg">
-                              <Stethoscope className="w-6 h-6 text-gray-500" />
+                            <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                              <Stethoscope className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                               <div>
-                                <div className="text-xl font-semibold text-gray-700">
+                                <div className="text-xl font-semibold text-gray-700 dark:text-gray-300">
                                   {modalStats.total_mris?.toLocaleString() || '0'}
                                 </div>
-                                <div className="text-sm text-gray-600">MRI Scans</div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400">MRI Scans</div>
                               </div>
                             </div>
                           )}
 
                           {props.activeMaskType !== 'dose' && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg">
-                              <Pill className="w-6 h-6 text-gray-500" />
+                            <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                              <Pill className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                               <div>
-                                <div className="text-xl font-semibold text-gray-700">
+                                <div className="text-xl font-semibold text-gray-700 dark:text-gray-300">
                                   {modalStats.total_dose_masks?.toLocaleString() || '0'}
                                 </div>
-                                <div className="text-sm text-gray-600">Dose Masks</div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400">Dose Masks</div>
                               </div>
                             </div>
                           )}
@@ -690,9 +690,9 @@ export default function Filter(props: FilterProps) {
 
               {/* Filter Criteria Section */}
               <div>
-                <h3 className='text-lg font-semibold text-gray-800 mb-3'>Applied Filters</h3>
-                <div className='bg-gray-50 rounded-lg p-4'>
-                  <div className='text-gray-700 text-sm leading-relaxed'>
+                <h3 className='text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3'>Applied Filters</h3>
+                <div className='bg-gray-50 dark:bg-gray-800 rounded-lg p-4'>
+                  <div className='text-gray-700 dark:text-gray-300 text-sm leading-relaxed'>
                     {formatCriteriaForDisplay(modalFilter.criteria)}
                   </div>
                 </div>
@@ -717,24 +717,24 @@ export default function Filter(props: FilterProps) {
         {/* Modal Popup for Creating a New Filter */}
         {newFilterModal && filterOptions && (
           <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30' style={{ zIndex: 100 }}>
-            <div className='bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 overflow-y-auto max-h-[80vh]'>
+            <div className='bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 overflow-y-auto max-h-[80vh]'>
               <div className='flex justify-between items-center mb-4'>
                 <h2 className='text-lg font-semibold'>Create New Filter</h2>
                 <button
                   onClick={() => setNewFilterModal(false)}
-                  className='text-gray-600 hover:text-gray-800'
+                  className='text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
                 >
                   Close
                 </button>
               </div>
-              
+
               <div className='mb-4'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Filter Name</label>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Filter Name</label>
                 <input
                   type='text'
                   value={newFilterName}
                   onChange={(e) => setNewFilterName(e.target.value)}
-                  className='w-full border border-gray-300 rounded p-2'
+                  className='w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded p-2'
                 />
               </div>
               
@@ -747,7 +747,7 @@ export default function Filter(props: FilterProps) {
               <div className='flex justify-end space-x-2'>
                 <button
                   onClick={() => setNewFilterModal(false)}
-                  className='px-3 py-1 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors'
+                  className='px-3 py-1 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors'
                 >
                   Cancel
                 </button>
@@ -797,24 +797,24 @@ export default function Filter(props: FilterProps) {
         {/* Modal Popup for Editing a Filter */}
         {editFilterModal && filterOptions && (
           <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30' style={{ zIndex: 100 }}>
-            <div className='bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 overflow-y-auto max-h-[80vh]'>
+            <div className='bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 overflow-y-auto max-h-[80vh]'>
               <div className='flex justify-between items-center mb-4'>
                 <h2 className='text-lg font-semibold'>Edit Filter</h2>
                 <button
                   onClick={() => setEditFilterModal(null)}
-                  className='text-gray-600 hover:text-gray-800'
+                  className='text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
                 >
                   Close
                 </button>
               </div>
-              
+
               <div className='mb-4'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Filter Name</label>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Filter Name</label>
                 <input
                   type='text'
                   value={editFilterName}
                   onChange={(e) => setEditFilterName(e.target.value)}
-                  className='w-full border border-gray-300 rounded p-2'
+                  className='w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded p-2'
                 />
               </div>
               
@@ -827,7 +827,7 @@ export default function Filter(props: FilterProps) {
               <div className='flex justify-end space-x-2'>
                 <button
                   onClick={() => setEditFilterModal(null)}
-                  className='px-3 py-1 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors'
+                  className='px-3 py-1 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors'
                 >
                   Cancel
                 </button>

@@ -192,12 +192,12 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
 
   return (
     <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-[100]'>
-      <div className='bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full overflow-y-auto max-h-[80vh]'>
+      <div className='bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-2xl w-full overflow-y-auto max-h-[80vh]'>
         <div className='flex justify-between items-center mb-4'>
           <h2 className='text-lg font-semibold'>Create New Chart</h2>
           <button
             onClick={closeModal}
-            className='text-gray-600 hover:text-gray-800'
+            className='text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           >
             Close
           </button>
@@ -205,11 +205,11 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
 
         {/* Filter Selection */}
         <div className='mb-4'>
-          <label className='block text-sm font-medium text-gray-700 mb-1'>Select Filter</label>
+          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Select Filter</label>
           <select
             value={selectedFilter}
             onChange={(e) => setSelectedFilter(e.target.value)}
-            className='w-full border border-gray-300 rounded p-2'
+            className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
           >
             {filters.map((filter) => (
               <option key={filter.id} value={filter.id}>
@@ -221,11 +221,11 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
 
         {/* Chart Type Selection */}
         <div className='mb-4'>
-          <label className='block text-sm font-medium text-gray-700 mb-1'>Chart Type</label>
+          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Chart Type</label>
           <select
             value={selectedChartType}
             onChange={(e) => setSelectedChartType(e.target.value)}
-            className='w-full border border-gray-300 rounded p-2'
+            className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
           >
             <option value="">Select Chart Type</option>
             {chartTypes.map((chartType) => (
@@ -240,48 +240,48 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
         {selectedChartType && (
           <div>
             <div className='mb-4'>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Chart Title</label>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Chart Title</label>
               <input
                 type='text'
                 name='title'
                 value={chartSettings.title}
                 onChange={handleSettingsChange}
-                className='w-full border border-gray-300 rounded p-2'
+                className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
                 placeholder='Enter chart title'
               />
             </div>
 
             <div className='mb-4'>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>X-Axis Title</label>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>X-Axis Title</label>
               <input
                 type='text'
                 name='xaxis_title'
                 value={chartSettings.xaxis_title}
                 onChange={handleSettingsChange}
-                className='w-full border border-gray-300 rounded p-2'
+                className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
                 placeholder='Enter x-axis title'
               />
             </div>
 
             <div className='mb-4'>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Y-Axis Title</label>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Y-Axis Title</label>
               <input
                 type='text'
                 name='yaxis_title'
                 value={chartSettings.yaxis_title}
                 onChange={handleSettingsChange}
-                className='w-full border border-gray-300 rounded p-2'
+                className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
                 placeholder='Enter y-axis title'
               />
             </div>
 
             {/* Field Selection */}
             <div className='mb-4'>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>X Axis Field</label>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>X Axis Field</label>
               <select
                 value={selectedXField}
                 onChange={(e) => setSelectedXField(e.target.value)}
-                className='w-full border border-gray-300 rounded p-2'
+                className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
               >
                 <option value="">Select a field…</option>
                 {fieldDefs.map((f) => (
@@ -291,11 +291,11 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
             </div>
 
             <div className='mb-4'>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Y Axis Field</label>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Y Axis Field</label>
               <select
                 value={selectedYField}
                 onChange={(e) => setSelectedYField(e.target.value)}
-                className='w-full border border-gray-300 rounded p-2'
+                className='w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800 dark:text-gray-100'
               >
                 <option value="">Select a field…</option>
                 {fieldDefs.map((f) => (
@@ -309,7 +309,7 @@ export default function NewChartModal({ isOpen, onClose, onChartCreated }: NewCh
         <div className='flex justify-end space-x-2 mt-4'>
           <button
             onClick={closeModal}
-            className='px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm'
+            className='px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm'
           >
             Cancel
           </button>

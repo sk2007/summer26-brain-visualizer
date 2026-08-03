@@ -306,7 +306,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
   return props.patientSearchShowing ? (
     <div
-      className={`fixed top-0 h-screen bg-white shadow-lg ${
+      className={`fixed top-0 h-screen bg-white dark:bg-gray-900 shadow-lg ${
         !isFullScreen ? '' : 'w-full'
       }`}
       style={{ 
@@ -321,14 +321,14 @@ export default function PatientSearch(props: PatientSearchProps) {
       {/* Resize handle - only show when not in fullscreen */}
       {!isFullScreen && <ResizeHandle />}
 
-      <div className='bg-white h-full w-full overflow-hidden flex flex-col max-h-screen'>
+      <div className='bg-white dark:bg-gray-900 h-full w-full overflow-hidden flex flex-col max-h-screen'>
         {/* Header */}
         <div className='flex justify-between items-center p-3 border-b flex-shrink-0'>
           <div className='flex items-center space-x-2'>
             {selectedPatient && (
               <button
                 onClick={handleBackToSearch}
-                className='p-1 hover:bg-gray-100 rounded-md transition-colors'
+                className='p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
                 title='Back to search'
               >
                 <ArrowLeft className='w-4 h-4' />
@@ -341,14 +341,14 @@ export default function PatientSearch(props: PatientSearchProps) {
           <div className='flex items-center space-x-1'>
             <button
               onClick={() => setIsFullScreen(!isFullScreen)}
-              className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+              className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
               title={isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
               <Maximize2 className='w-4 h-4' />
             </button>
             <button
               onClick={() => props.togglePatientSearch(false)}
-              className='p-1.5 hover:bg-gray-100 rounded-md transition-colors'
+              className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'
               title='Close'
             >
               <X className='w-4 h-4' />
@@ -376,7 +376,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder='Search patient IDs...'
-                  className='block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#2774AE] focus:border-[#2774AE] sm:text-sm'
+                  className='block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#2774AE] focus:border-[#2774AE] sm:text-sm'
                 />
               </div>
 
@@ -384,14 +384,14 @@ export default function PatientSearch(props: PatientSearchProps) {
               {isLoading && (
                 <div className='flex items-center justify-center py-8'>
                   <Loader2 className='w-6 h-6 text-[#2774AE] animate-spin' />
-                  <span className='ml-2 text-gray-600'>Searching patients...</span>
+                  <span className='ml-2 text-gray-600 dark:text-gray-400'>Searching patients...</span>
                 </div>
               )}
 
               {/* Search Results */}
               {!isLoading && searchTerm.trim() && (
                 <div className='space-y-2'>
-                  <div className='text-sm text-gray-500 mb-2'>
+                  <div className='text-sm text-gray-500 dark:text-gray-400 mb-2'>
                     {searchResults.length > 0 
                       ? `Found ${searchResults.length} patient${searchResults.length !== 1 ? 's' : ''}`
                       : 'No patients found'
@@ -402,19 +402,19 @@ export default function PatientSearch(props: PatientSearchProps) {
                     <div
                       key={patient.id}
                       onClick={() => handlePatientSelect(patient)}
-                      className='p-3 border border-gray-200 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 hover:border-[#2774AE]'
+                      className='p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-[#2774AE]'
                     >
                       <div className='flex items-center justify-between'>
                         <div className='flex items-center space-x-3'>
                           <User className='w-5 h-5 text-[#2774AE]' />
                           <div>
                             <div className='font-medium text-gray-900'>{patient.display_name}</div>
-                            <div className='text-sm text-gray-500'>ID: {patient.id}</div>
+                            <div className='text-sm text-gray-500 dark:text-gray-400'>ID: {patient.id}</div>
                           </div>
                         </div>
                         <div className='text-right'>
                           <div className='text-sm font-medium text-gray-900'>{patient.data_count}</div>
-                          <div className='text-xs text-gray-500'>data points</div>
+                          <div className='text-xs text-gray-500 dark:text-gray-400'>data points</div>
                         </div>
                       </div>
                     </div>
@@ -424,7 +424,7 @@ export default function PatientSearch(props: PatientSearchProps) {
 
               {/* Empty State */}
               {!isLoading && !searchTerm.trim() && (
-                <div className='text-center text-gray-500 mt-10'>
+                <div className='text-center text-gray-500 dark:text-gray-400 mt-10'>
                   <Search className='w-12 h-12 mx-auto mb-4 text-gray-300' />
                   <p className='text-sm'>Start typing to search for patients</p>
                   <p className='text-xs mt-1'>Search by patient ID (partial matches supported)</p>
@@ -437,13 +437,13 @@ export default function PatientSearch(props: PatientSearchProps) {
               {isLoadingOverview ? (
                 <div className='flex items-center justify-center py-8'>
                   <Loader2 className='w-6 h-6 text-[#2774AE] animate-spin' />
-                  <span className='ml-2 text-gray-600'>Loading patient data...</span>
+                  <span className='ml-2 text-gray-600 dark:text-gray-400'>Loading patient data...</span>
                 </div>
               ) : patientOverview ? (
                 <>
                   {/* Patient ID */}
-                  <div className='bg-gray-50 p-4 rounded-lg'>
-                    <div className='text-sm text-gray-500 mb-1'>Patient ID</div>
+                  <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
+                    <div className='text-sm text-gray-500 dark:text-gray-400 mb-1'>Patient ID</div>
                     <div className='font-mono text-sm'>{patientOverview.id}</div>
                   </div>
 
@@ -456,30 +456,30 @@ export default function PatientSearch(props: PatientSearchProps) {
                           <User className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Sex</span>
                         </div>
-                        <div className='text-sm text-gray-600'>{patientOverview.sex}</div>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.sex}</div>
                       </div>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
                           <Ruler className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Height</span>
                         </div>
-                        <div className='text-sm text-gray-600'>{patientOverview.height_cm} cm</div>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.height_cm} cm</div>
                       </div>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
                           <Weight className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Weight</span>
                         </div>
-                        <div className='text-sm text-gray-600'>{patientOverview.weight_kg} kg</div>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.weight_kg} kg</div>
                       </div>
                       <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
                           <Activity className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>BMI</span>
                         </div>
-                        <div className='text-sm text-gray-600'>
-                          {calculateBMI(patientOverview.height_cm, patientOverview.weight_kg)} 
-                          <span className='text-xs text-gray-500 ml-1'>
+                        <div className='text-sm text-gray-600 dark:text-gray-400'>
+                          {calculateBMI(patientOverview.height_cm, patientOverview.weight_kg)}
+                          <span className='text-xs text-gray-500 dark:text-gray-400 ml-1'>
                             ({getBMICategory(parseFloat(calculateBMI(patientOverview.height_cm, patientOverview.weight_kg)))})
                           </span>
                         </div>
@@ -491,17 +491,17 @@ export default function PatientSearch(props: PatientSearchProps) {
                   <div className='space-y-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>Medical Information</h3>
                     <div className='space-y-3'>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Origin Cancer</span>
-                        <span className='text-sm text-gray-600'>{patientOverview.origin_cancer}</span>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.origin_cancer}</span>
                       </div>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Tumor Count</span>
-                        <span className='text-sm text-gray-600'>{patientOverview.tumor_count}</span>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>{patientOverview.tumor_count}</span>
                       </div>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <span className='text-sm font-medium'>Blood Pressure</span>
-                        <span className='text-sm text-gray-600'>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>
                           {patientOverview.systolic_bp}/{patientOverview.diastolic_bp} mmHg
                         </span>
                       </div>
@@ -512,21 +512,21 @@ export default function PatientSearch(props: PatientSearchProps) {
                   <div className='space-y-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>Diagnosis Timeline</h3>
                     <div className='space-y-3'>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <div className='flex items-center space-x-2'>
                           <Calendar className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Original Diagnosis</span>
                         </div>
-                        <span className='text-sm text-gray-600'>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>
                           {formatDate(patientOverview.date_of_original_diagnosis)}
                         </span>
                       </div>
-                      <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                      <div className='flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg'>
                         <div className='flex items-center space-x-2'>
                           <Calendar className='w-4 h-4 text-[#2774AE]' />
                           <span className='text-sm font-medium'>Metastatic Diagnosis</span>
                         </div>
-                        <span className='text-sm text-gray-600'>
+                        <span className='text-sm text-gray-600 dark:text-gray-400'>
                           {formatDate(patientOverview.date_of_metastatic_diagnosis)}
                         </span>
                       </div>
@@ -540,7 +540,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                       <button
                         onClick={() => setPlaybackOpen(true)}
                         disabled={mriTimeline.length === 0}
-                        className='p-2 text-[#2774AE] hover:bg-[#2774AE] hover:text-white rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed'
+                        className='p-2 text-[#2774AE] hover:bg-[#2774AE] hover:text-white rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-[#2774AE]/80'
                         title={mriTimeline.length === 0 ? 'No MRI scans available' : 'Play MRI Timeline'}
                       >
                         <Play className='w-4 h-4' />
@@ -554,7 +554,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                               <Calendar className='w-4 h-4 text-[#2774AE]' />
                               <div>
                                 <div className='text-sm font-medium text-gray-900'>{formatDate(mri.date)}</div>
-                                <div className='text-xs text-gray-500'>{mri.timepoint}</div>
+                                <div className='text-xs text-gray-500 dark:text-gray-400'>{mri.timepoint}</div>
                               </div>
                             </div>
                             <button
@@ -568,7 +568,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                         ))}
                       </div>
                     ) : (
-                      <div className='text-center text-gray-500 py-4'>
+                      <div className='text-center text-gray-500 dark:text-gray-400 py-4'>
                         <p className='text-sm'>No MRI data available</p>
                       </div>
                     )}
@@ -595,7 +595,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                               <Brain className='w-4 h-4 text-green-600' />
                               <div>
                                 <div className='text-sm font-medium text-gray-900'>{tumor.location}</div>
-                                <div className='text-xs text-gray-500'>{tumor.volume_mm3} mm³</div>
+                                <div className='text-xs text-gray-500 dark:text-gray-400'>{tumor.volume_mm3} mm³</div>
                               </div>
                             </div>
                             <button
@@ -609,7 +609,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                         ))}
                       </div>
                     ) : (
-                      <div className='text-center text-gray-500 py-4'>
+                      <div className='text-center text-gray-500 dark:text-gray-400 py-4'>
                         <p className='text-sm'>No tumor data available</p>
                       </div>
                     )}
@@ -636,7 +636,7 @@ export default function PatientSearch(props: PatientSearchProps) {
                               <Pill className='w-4 h-4 text-purple-600' />
                               <div>
                                 <div className='text-sm font-medium text-gray-900'>{treatment.type}</div>
-                                <div className='text-xs text-gray-500'>
+                                <div className='text-xs text-gray-500 dark:text-gray-400'>
                                   {treatment.dose && `${treatment.dose} Gy`}
                                   {treatment.volume_mm3 && ` • ${treatment.volume_mm3.toFixed(1)} mm³`}
                                   {treatment.date && ` • ${formatDate(treatment.date)}`}
@@ -654,14 +654,14 @@ export default function PatientSearch(props: PatientSearchProps) {
                         ))}
                       </div>
                     ) : (
-                      <div className='text-center text-gray-500 py-4'>
+                      <div className='text-center text-gray-500 dark:text-gray-400 py-4'>
                         <p className='text-sm'>No treatment data available</p>
                       </div>
                     )}
                   </div>
                 </>
               ) : (
-                <div className='text-center text-gray-500 py-8'>
+                <div className='text-center text-gray-500 dark:text-gray-400 py-8'>
                   <User className='w-12 h-12 mx-auto mb-4 text-gray-300' />
                   <p className='text-sm'>Failed to load patient data</p>
                 </div>
