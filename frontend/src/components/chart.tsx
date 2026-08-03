@@ -83,7 +83,7 @@ export default function Chart(props: ChartProps) {
   }
 
   return (
-    <div className='w-full h-full border border-gray-300 rounded-lg bg-gray-100 overflow-hidden'>
+    <div className='w-full h-full border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden'>
       <Plot 
         data={props.plotlyConfig.data}
         layout={{ 

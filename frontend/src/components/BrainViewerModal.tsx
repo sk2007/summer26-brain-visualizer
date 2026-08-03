@@ -54,27 +54,27 @@ export default function BrainViewerModal({
   return (
     <div className="fixed inset-0 z-[100] bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div
-        className={`bg-white rounded-lg shadow-xl flex flex-col ${
+        className={`bg-white dark:bg-gray-900 rounded-lg shadow-xl flex flex-col ${
           isFullscreen ? 'w-full h-full' : 'w-[90vw] h-[80vh] max-w-6xl'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+        <div className="flex items-center justify-between p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-lg">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-500 capitalize">{dataType} visualization</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{dataType} visualization</p>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setReloadKey((k) => k + 1)}
-              className="p-2 hover:bg-gray-200 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors dark:text-gray-300"
               title="Reload viewer"
             >
               <RotateCcw className="w-5 h-5" />
             </button>
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 hover:bg-gray-200 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors dark:text-gray-300"
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
               {isFullscreen ? (
@@ -85,7 +85,7 @@ export default function BrainViewerModal({
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-200 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors dark:text-gray-300"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -149,7 +149,7 @@ export default function BrainViewerModal({
           </div>
 
           {/* Brain viewer iframe */}
-          <div className="flex-1 bg-gray-100 overflow-hidden relative">
+          <div className="flex-1 bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
             <iframe
               key={reloadKey}
               src={viewerUrl}
