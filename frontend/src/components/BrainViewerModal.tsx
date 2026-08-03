@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Maximize2, Minimize2, Brain, RotateCcw } from 'lucide-react';
+import { X, Maximize2, Minimize2, Brain, RotateCcw, Eye, EyeOff } from 'lucide-react';
 
 interface TumorItem {
   id: string;
@@ -26,11 +26,32 @@ export default function BrainViewerModal({
 }: BrainViewerModalProps) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [reloadKey, setReloadKey] = React.useState(0);
+  const [brainVisible, setBrainVisible] = React.useState(true);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
   const [niftiMeta, setNiftiMeta] = React.useState<{
     dims: number[];
     voxel_size_mm: number[];
   } | null>(null);
   const [metaError, setMetaError] = React.useState(false);
+
+  const sendOpacity = React.useCallback((visible: boolean) => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'set-brain-opacity', value: visible ? 1 : 0 },
+      '*'
+    );
+  }, []);
+
+  React.useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const onLoad = () => sendOpacity(brainVisible);
+    iframe.addEventListener('load', onLoad);
+    return () => iframe.removeEventListener('load', onLoad);
+  }, [brainVisible, sendOpacity]);
+
+  React.useEffect(() => {
+    if (isOpen) setBrainVisible(true);
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -71,6 +92,18 @@ export default function BrainViewerModal({
               title="Reload viewer"
             >
               <RotateCcw className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => {
+                setBrainVisible((v) => {
+                  sendOpacity(!v);
+                  return !v;
+                });
+              }}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors dark:text-gray-300"
+              title={brainVisible ? 'Hide brain surface' : 'Show brain surface'}
+            >
+              {brainVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
@@ -151,6 +184,7 @@ export default function BrainViewerModal({
           {/* Brain viewer iframe */}
           <div className="flex-1 bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
             <iframe
+              ref={iframeRef}
               key={reloadKey}
               src={viewerUrl}
               className="w-full h-full border-0"
