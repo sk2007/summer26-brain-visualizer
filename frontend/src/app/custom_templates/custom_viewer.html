@@ -78,5 +78,24 @@
         }
       });
     }
+
+    // Brain surface opacity toggle via postMessage
+    window.addEventListener('message', function(event) {
+      if (!event.data || event.data.type !== 'set-brain-opacity') return;
+      var opacity = Number(event.data.value);
+      for (var name in subjects) {
+        var surf = subjects[name];
+        ['left', 'right'].forEach(function(hemi) {
+          if (surf[hemi] && surf[hemi].mesh) {
+            surf[hemi].mesh.material.opacity = opacity;
+            surf[hemi].mesh.material.transparent = opacity < 1;
+            surf[hemi].mesh.material.needsUpdate = true;
+          }
+        });
+      }
+      if (viewer && viewer.renderer) {
+        viewer.renderer.render(viewer.scene, viewer.camera);
+      }
+    });
   </script>
 {% end %}
