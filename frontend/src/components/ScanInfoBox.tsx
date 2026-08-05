@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface FilterStats {
   filter_name: string;
@@ -41,10 +41,76 @@ const VIEW_LABELS: Record<string, string> = {
   glass: 'Glass brain',
 };
 
+const MARGIN = 16;
+const BOX_WIDTH = 288; // w-72
+const THEME_TOGGLE_CLEARANCE = 60; // px from top to clear the ThemeToggle button
+
+type Corner = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+const CORNERS: Corner[] = ['bottom-left', 'bottom-right', 'top-left', 'top-right'];
+
+function getProspectiveRect(
+  corner: Corner,
+  sidebarWidth: number,
+  boxH: number,
+): { left: number; top: number; width: number; height: number } {
+  const winW = window.innerWidth;
+  const winH = window.innerHeight;
+  switch (corner) {
+    case 'bottom-left':
+      return { left: sidebarWidth + MARGIN, top: winH - MARGIN - boxH, width: BOX_WIDTH, height: boxH };
+    case 'bottom-right':
+      return { left: winW - MARGIN - BOX_WIDTH, top: winH - MARGIN - boxH, width: BOX_WIDTH, height: boxH };
+    case 'top-left':
+      return { left: sidebarWidth + MARGIN, top: MARGIN, width: BOX_WIDTH, height: boxH };
+    case 'top-right':
+      return { left: winW - MARGIN - BOX_WIDTH, top: THEME_TOGGLE_CLEARANCE, width: BOX_WIDTH, height: boxH };
+  }
+}
+
+function scoreCorner(corner: Corner, sidebarWidth: number, boxEl: HTMLElement): number {
+  const boxH = boxEl.offsetHeight || 100;
+  const rect = getProspectiveRect(corner, sidebarWidth, boxH);
+  const winW = window.innerWidth;
+  const winH = window.innerHeight;
+
+  // Sample 5 points inside the prospective box position
+  const points: [number, number][] = [
+    [rect.left + rect.width / 2, rect.top + rect.height / 2],
+    [rect.left + 8, rect.top + 8],
+    [rect.left + rect.width - 8, rect.top + 8],
+    [rect.left + 8, rect.top + rect.height - 8],
+    [rect.left + rect.width - 8, rect.top + rect.height - 8],
+  ];
+
+  let score = 0;
+  for (const [x, y] of points) {
+    // Heavily penalise off-screen positions
+    if (x < 0 || y < 0 || x > winW || y > winH) {
+      score += 100;
+      continue;
+    }
+    const els = document.elementsFromPoint(x, y);
+    for (const el of els) {
+      const tag = el.tagName.toLowerCase();
+      if (tag === 'html' || tag === 'body' || tag === 'iframe') continue;
+      if (el === boxEl || boxEl.contains(el)) continue;
+      score += 1;
+    }
+  }
+  return score;
+}
+
+function cornerStyle(corner: Corner, sidebarWidth: number): React.CSSProperties {
+  switch (corner) {
+    case 'bottom-left': return { bottom: MARGIN, left: sidebarWidth + MARGIN };
+    case 'bottom-right': return { bottom: MARGIN, right: MARGIN };
+    case 'top-left':    return { top: MARGIN,    left: sidebarWidth + MARGIN };
+    case 'top-right':   return { top: THEME_TOGGLE_CLEARANCE, right: MARGIN };
+  }
+}
+
 function Skeleton() {
-  return (
-    <div className="animate-pulse bg-gray-200 dark:bg-gray-600 rounded h-3 w-32" />
-  );
+  return <div className="animate-pulse bg-gray-200 dark:bg-gray-600 rounded h-3 w-32" />;
 }
 
 export default function ScanInfoBox({
@@ -61,6 +127,34 @@ export default function ScanInfoBox({
   const [patientOverview, setPatientOverview] = useState<PatientOverview | null>(null);
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState(false);
+
+  const [corner, setCorner] = useState<Corner>('bottom-left');
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  // Pick the corner with the fewest obstructing elements
+  const pickBestCorner = useCallback(() => {
+    if (!boxRef.current) return;
+    let best: Corner = 'bottom-left';
+    let bestScore = Infinity;
+    for (const c of CORNERS) {
+      const s = scoreCorner(c, sidebarWidth, boxRef.current);
+      if (s < bestScore) { bestScore = s; best = c; }
+    }
+    setCorner(best);
+  }, [sidebarWidth]);
+
+  // Re-evaluate on mount and window resize
+  useEffect(() => {
+    pickBestCorner();
+    window.addEventListener('resize', pickBestCorner);
+    return () => window.removeEventListener('resize', pickBestCorner);
+  }, [pickBestCorner]);
+
+  // Re-evaluate when box content changes size (patient selected/deselected)
+  useEffect(() => {
+    const t = setTimeout(pickBestCorner, 50);
+    return () => clearTimeout(t);
+  }, [selectedPatient?.id, pickBestCorner]);
 
   // Fetch filter stats
   useEffect(() => {
@@ -122,12 +216,11 @@ export default function ScanInfoBox({
     return () => controller.abort();
   }, [selectedPatient?.id]);
 
-  const leftOffset = sidebarWidth + 16;
-
   return (
     <div
-      className="fixed bottom-4 z-30 w-72 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-md rounded-xl p-3 text-sm transition-[left] duration-300 ease-in-out"
-      style={{ left: leftOffset }}
+      ref={boxRef}
+      className="fixed z-30 w-72 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-md rounded-xl p-3 text-sm transition-[top,right,bottom,left] duration-300 ease-in-out"
+      style={cornerStyle(corner, sidebarWidth)}
     >
       {/* Cohort section */}
       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">

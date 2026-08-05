@@ -3,12 +3,15 @@ services:
     build:
       context: ./frontend
       target: dev
+    ports:
+      - "3001:3000"
     volumes:
       - ./frontend:/src
       - frontend_node_modules:/src/node_modules
       - frontend_next_cache:/src/.next
     environment:
       - NODE_ENV=development
+      - API_URL=http://backend:5001
     command: ["npm", "run", "dev"]
 
   backend:
